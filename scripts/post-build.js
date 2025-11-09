@@ -39,8 +39,9 @@ function createManifest() {
 
   if (isFirefox) {
     // Firefox 使用 manifest v2 兼容模式
+    const { action, ...baseManifestWithoutAction } = baseManifest;
     return {
-      ...baseManifest,
+      ...baseManifestWithoutAction,
       manifest_version: 2,
       browser_action: baseManifest.action,
       background: {
@@ -61,20 +62,22 @@ function createManifest() {
   }
 }
 
-// 创建图标目录
-const iconsDir = path.join(distDir, 'icons')
-if (!fs.existsSync(iconsDir)) {
-  fs.mkdirSync(iconsDir, { recursive: true })
-}
+// 生成图标
+console.log(`🔄 Generating icons for ${browser}...`)
+const { spawn } = await import('child_process')
 
-// 创建占位图标文件
-const iconSizes = [16, 32, 48, 128]
-iconSizes.forEach(size => {
-  const iconPath = path.join(iconsDir, `icon-${size}.png`)
-  if (!fs.existsSync(iconPath)) {
-    // 创建空的占位文件
-    fs.writeFileSync(iconPath, '')
-  }
+const generateIcons = spawn('node', ['scripts/generate-icons.js'], {
+  stdio: 'inherit'
+})
+
+await new Promise((resolve, reject) => {
+  generateIcons.on('close', (code) => {
+    if (code === 0) {
+      resolve()
+    } else {
+      reject(new Error(`Icon generation failed with code ${code}`))
+    }
+  })
 })
 
 // 生成 manifest

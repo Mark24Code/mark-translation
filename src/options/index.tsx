@@ -13,6 +13,8 @@ const Options: React.FC = () => {
   });
   const [status, setStatus] = useState<string>('Configure your AI provider settings to enable translation');
   const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
+  const [isTesting, setIsTesting] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
     loadConfig();
@@ -38,40 +40,55 @@ const Options: React.FC = () => {
     }));
   };
 
-  const handleProviderChange = (provider: AIConfig['provider']) => {
-    setConfig(prev => ({
-      ...prev,
-      provider
-    }));
-
-    // 设置默认值
-    switch (provider) {
-      case 'deepseek':
-        setConfig(prev => ({
-          ...prev,
-          apiUrl: 'https://api.deepseek.com',
-          model: 'deepseek-chat'
-        }));
-        break;
-      case 'openai':
-        setConfig(prev => ({
-          ...prev,
-          apiUrl: 'https://api.openai.com',
-          model: 'gpt-3.5-turbo'
-        }));
-        break;
-      case 'claude':
-        setConfig(prev => ({
-          ...prev,
-          apiUrl: 'https://api.anthropic.com',
-          model: 'claude-3-sonnet-20240229'
-        }));
-        break;
+  // 提供商配置
+  const providerConfigs = {
+    deepseek: {
+      name: 'DeepSeek',
+      apiUrl: 'https://api.deepseek.com',
+      models: [
+        { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+        { value: 'deepseek-coder', label: 'DeepSeek Coder' }
+      ],
+      defaultModel: 'deepseek-chat',
+      helpText: 'Free tier available, excellent Chinese support'
+    },
+    openai: {
+      name: 'OpenAI',
+      apiUrl: 'https://api.openai.com',
+      models: [
+        { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+        { value: 'gpt-4', label: 'GPT-4' },
+        { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' }
+      ],
+      defaultModel: 'gpt-3.5-turbo',
+      helpText: 'High quality translations, paid service'
+    },
+    claude: {
+      name: 'Claude',
+      apiUrl: 'https://api.anthropic.com',
+      models: [
+        { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
+        { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
+        { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' }
+      ],
+      defaultModel: 'claude-3-sonnet-20240229',
+      helpText: 'Excellent for complex translations'
     }
+  };
+
+  const handleProviderChange = (provider: AIConfig['provider']) => {
+    const providerConfig = providerConfigs[provider];
+    setConfig({
+      provider,
+      apiUrl: providerConfig.apiUrl,
+      model: providerConfig.defaultModel,
+      apiKey: config.apiKey // 保留现有的 API Key
+    });
   };
 
   const testConnection = async () => {
     try {
+      setIsTesting(true);
       setStatus('Testing connection...');
       setStatusType('info');
 
@@ -80,18 +97,30 @@ const Options: React.FC = () => {
       }
 
       const translationAPI = new TranslationAPI(config);
-      const result = await translationAPI.translate('Hello', 'en', 'zh');
+      const result = await translationAPI.translate('Hello, how are you today?', 'en', 'zh');
 
       if (result.success) {
-        setStatus(`Connection successful! Test translation: "${result.translated}"`);
+        setStatus(`✅ Connection successful! Test translation: "${result.translated}"`);
         setStatusType('success');
       } else {
         throw new Error(result.error || 'Connection test failed');
       }
     } catch (error) {
       console.error('Connection test failed:', error);
-      setStatus(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+        setStatus('❌ Connection failed: Invalid API Key');
+      } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+        setStatus('❌ Connection failed: Invalid API URL or model');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setStatus('❌ Connection failed: Network error - check your internet connection');
+      } else {
+        setStatus(`❌ Connection failed: ${errorMessage}`);
+      }
       setStatusType('error');
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -99,6 +128,7 @@ const Options: React.FC = () => {
     e.preventDefault();
 
     try {
+      setIsSaving(true);
       setStatus('Saving settings...');
       setStatusType('info');
 
@@ -106,25 +136,39 @@ const Options: React.FC = () => {
         throw new Error('Please fill in all fields');
       }
 
+      // 验证配置
+      if (!config.apiUrl.startsWith('https://')) {
+        throw new Error('API URL must use HTTPS');
+      }
+
+      if (config.apiKey.length < 10) {
+        throw new Error('API Key appears to be invalid');
+      }
+
       await StorageManager.setAIConfig(config);
-      setStatus('Settings saved successfully!');
+      setStatus('✅ Settings saved successfully! You can now use the translation feature.');
       setStatusType('success');
     } catch (error) {
       console.error('Failed to save settings:', error);
-      setStatus(`Failed to save settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`❌ Failed to save settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setStatusType('error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const resetSettings = () => {
-    setConfig({
-      apiUrl: '',
-      model: '',
-      apiKey: '',
-      provider: 'deepseek'
-    });
-    setStatus('Settings reset');
-    setStatusType('info');
+  const resetSettings = async () => {
+    if (confirm('Are you sure you want to reset all settings? This will clear your API configuration.')) {
+      await StorageManager.clearConfig();
+      setConfig({
+        apiUrl: '',
+        model: '',
+        apiKey: '',
+        provider: 'deepseek'
+      });
+      setStatus('Settings reset to defaults');
+      setStatusType('info');
+    }
   };
 
   return (
@@ -171,16 +215,21 @@ const Options: React.FC = () => {
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
             Model
           </label>
-          <input
-            type="text"
+          <select
             value={config.model}
             onChange={(e) => handleInputChange('model', e.target.value)}
-            placeholder="deepseek-chat"
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
             required
-          />
+          >
+            <option value="">Select a model</option>
+            {providerConfigs[config.provider]?.models.map(model => (
+              <option key={model.value} value={model.value}>
+                {model.label}
+              </option>
+            ))}
+          </select>
           <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            Examples: deepseek-chat, gpt-3.5-turbo, claude-3-sonnet-20240229
+            {providerConfigs[config.provider]?.helpText}
           </div>
         </div>
 
@@ -205,35 +254,40 @@ const Options: React.FC = () => {
           <button
             type="button"
             onClick={testConnection}
+            disabled={isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey}
             style={{
               padding: '12px 24px',
-              background: '#28a745',
+              background: isTesting ? '#6c757d' : '#28a745',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: 'pointer'
+              cursor: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 'not-allowed' : 'pointer',
+              opacity: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 0.6 : 1
             }}
           >
-            Test Connection
+            {isTesting ? 'Testing...' : 'Test Connection'}
           </button>
           <button
             type="submit"
+            disabled={isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey}
             style={{
               padding: '12px 24px',
-              background: '#007acc',
+              background: isSaving ? '#6c757d' : '#007acc',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: 'pointer'
+              cursor: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 'not-allowed' : 'pointer',
+              opacity: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 0.6 : 1
             }}
           >
-            Save Settings
+            {isSaving ? 'Saving...' : 'Save Settings'}
           </button>
           <button
             type="button"
             onClick={resetSettings}
+            disabled={isTesting || isSaving}
             style={{
               padding: '12px 24px',
               background: '#f8f9fa',
@@ -241,7 +295,8 @@ const Options: React.FC = () => {
               border: '1px solid #ddd',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: 'pointer'
+              cursor: isTesting || isSaving ? 'not-allowed' : 'pointer',
+              opacity: isTesting || isSaving ? 0.6 : 1
             }}
           >
             Reset
@@ -260,19 +315,32 @@ const Options: React.FC = () => {
           color: statusType === 'success' ? '#155724' :
                 statusType === 'error' ? '#721c24' : '#0c5460',
           border: `1px solid ${statusType === 'success' ? '#c3e6cb' :
-                           statusType === 'error' ? '#f5c6cb' : '#bee5eb'}`
+                           statusType === 'error' ? '#f5c6cb' : '#bee5eb'}`,
+          lineHeight: '1.5'
         }}
       >
         {status}
       </div>
 
       <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '4px', marginTop: '20px' }}>
-        <h3 style={{ marginTop: '0', color: '#333' }}>Provider Information</h3>
-        <ul style={{ margin: '0', paddingLeft: '20px' }}>
-          <li><strong>DeepSeek</strong>: Free tier available, supports Chinese well</li>
-          <li><strong>OpenAI</strong>: High quality, paid service</li>
-          <li><strong>Claude</strong>: Excellent for complex translations</li>
-        </ul>
+        <h3 style={{ marginTop: '0', color: '#333' }}>Getting Started</h3>
+        <div style={{ lineHeight: '1.6' }}>
+          <p><strong>1. Choose a provider:</strong></p>
+          <ul style={{ margin: '0 0 15px 20px', padding: '0' }}>
+            <li><strong>DeepSeek</strong>: Free tier available, excellent Chinese support</li>
+            <li><strong>OpenAI</strong>: High quality translations, paid service</li>
+            <li><strong>Claude</strong>: Best for complex translations</li>
+          </ul>
+
+          <p><strong>2. Get your API key:</strong></p>
+          <ul style={{ margin: '0 0 15px 20px', padding: '0' }}>
+            <li>DeepSeek: <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a></li>
+            <li>OpenAI: <a href="https://platform.openai.com/" target="_blank" rel="noopener">platform.openai.com</a></li>
+            <li>Claude: <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a></li>
+          </ul>
+
+          <p><strong>3. Test connection before saving</strong> to verify your settings</p>
+        </div>
       </div>
     </div>
   );

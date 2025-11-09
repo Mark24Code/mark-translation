@@ -14,7 +14,23 @@ const Popup: React.FC = () => {
 
   useEffect(() => {
     loadConfig();
+    checkAIConfig();
   }, []);
+
+  const checkAIConfig = async () => {
+    try {
+      const aiConfig = await StorageManager.getAIConfig();
+      if (!aiConfig) {
+        setStatus('⚠️ Please configure AI settings first');
+        setStatusType('info');
+      } else {
+        setStatus('✅ Ready to translate');
+        setStatusType('success');
+      }
+    } catch (error) {
+      console.error('Failed to check AI config:', error);
+    }
+  };
 
   const loadConfig = async () => {
     try {
@@ -30,6 +46,14 @@ const Popup: React.FC = () => {
       setStatus('Translating...');
       setStatusType('info');
 
+      // 检查是否有配置
+      const aiConfig = await StorageManager.getAIConfig();
+      if (!aiConfig) {
+        setStatus('Please configure AI settings first');
+        setStatusType('error');
+        return;
+      }
+
       // 获取当前标签页
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
@@ -44,14 +68,18 @@ const Popup: React.FC = () => {
       });
 
       if (response?.success) {
-        setStatus('Translation completed');
+        setStatus('✅ Translation completed!');
         setStatusType('success');
       } else {
         throw new Error('Translation failed');
       }
     } catch (error) {
       console.error('Translation error:', error);
-      setStatus('Translation failed. Please check settings.');
+      if (error.message.includes('Could not establish connection')) {
+        setStatus('❌ Translation failed: Please refresh the page and try again');
+      } else {
+        setStatus('❌ Translation failed. Please check settings and refresh the page.');
+      }
       setStatusType('error');
     }
   };
@@ -66,12 +94,12 @@ const Popup: React.FC = () => {
           config
         });
 
-        setStatus('Translations cleared');
+        setStatus('✅ Translations cleared');
         setStatusType('success');
       }
     } catch (error) {
       console.error('Clear error:', error);
-      setStatus('Failed to clear translations');
+      setStatus('❌ Failed to clear translations');
       setStatusType('error');
     }
   };
@@ -95,7 +123,14 @@ const Popup: React.FC = () => {
   };
 
   const openSettings = () => {
-    chrome.runtime.openOptionsPage();
+    try {
+      console.log('Opening options page...');
+      chrome.runtime.openOptionsPage();
+    } catch (error) {
+      console.error('Failed to open options page:', error);
+      // 备用方法：直接打开 options.html
+      window.open(chrome.runtime.getURL('options.html'), '_blank');
+    }
   };
 
   return (

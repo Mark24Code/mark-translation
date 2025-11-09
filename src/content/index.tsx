@@ -71,10 +71,15 @@ class TranslationManager {
           }
         },
         (response) => {
-          if (response.success) {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+
+          if (response && response.success) {
             resolve(response.translated);
           } else {
-            reject(new Error(response.error));
+            reject(new Error(response?.error || 'Translation failed'));
           }
         }
       );

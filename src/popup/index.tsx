@@ -1,108 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { TranslationConfig } from '../shared/types';
-import { StorageManager } from '../utils/storage';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import {
+  translationConfigAtom,
+  translationStatusAtom,
+  errorMessageAtom,
+  loadConfigsAtom,
+  translatePageAtom,
+  clearTranslationsAtom
+} from '../store';
 
 const Popup: React.FC = () => {
-  const [config, setConfig] = useState<TranslationConfig>({
-    sourceLang: 'en',
-    targetLang: 'zh',
-    autoTranslate: false
-  });
-  const [status, setStatus] = useState<string>('Ready to translate');
-  const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
+  const [config, setConfig] = useAtom(translationConfigAtom);
+  const translationStatus = useAtomValue(translationStatusAtom);
+  const errorMessage = useAtomValue(errorMessageAtom);
+  const loadConfigs = useSetAtom(loadConfigsAtom);
+  const translatePage = useSetAtom(translatePageAtom);
+  const clearTranslations = useSetAtom(clearTranslationsAtom);
 
   useEffect(() => {
-    loadConfig();
-    checkAIConfig();
+    loadConfigs();
   }, []);
 
-  const checkAIConfig = async () => {
-    try {
-      const aiConfig = await StorageManager.getAIConfig();
-      if (!aiConfig) {
-        setStatus('⚠️ Please configure AI settings first');
-        setStatusType('info');
-      } else {
-        setStatus('✅ Ready to translate');
-        setStatusType('success');
-      }
-    } catch (error) {
-      console.error('Failed to check AI config:', error);
+  // 获取状态显示
+  const getStatusInfo = () => {
+    switch (translationStatus) {
+      case 'translating':
+        return { message: 'Translating...', type: 'info' as const };
+      case 'success':
+        return { message: '✅ Translation completed!', type: 'success' as const };
+      case 'error':
+        return { message: errorMessage || '❌ Translation failed', type: 'error' as const };
+      default:
+        return { message: 'Ready to translate', type: 'info' as const };
     }
   };
 
-  const loadConfig = async () => {
-    try {
-      const savedConfig = await StorageManager.getTranslationConfig();
-      setConfig(savedConfig);
-    } catch (error) {
-      console.error('Failed to load config:', error);
-    }
-  };
-
-  const handleTranslate = async () => {
-    try {
-      setStatus('Translating...');
-      setStatusType('info');
-
-      // 检查是否有配置
-      const aiConfig = await StorageManager.getAIConfig();
-      if (!aiConfig) {
-        setStatus('Please configure AI settings first');
-        setStatusType('error');
-        return;
-      }
-
-      // 获取当前标签页
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-      if (!tab.id) {
-        throw new Error('No active tab found');
-      }
-
-      // 发送消息到内容脚本
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        type: 'translatePage',
-        config
-      });
-
-      if (response?.success) {
-        setStatus('✅ Translation completed!');
-        setStatusType('success');
-      } else {
-        throw new Error('Translation failed');
-      }
-    } catch (error) {
-      console.error('Translation error:', error);
-      if (error.message.includes('Could not establish connection')) {
-        setStatus('❌ Translation failed: Please refresh the page and try again');
-      } else {
-        setStatus('❌ Translation failed. Please check settings and refresh the page.');
-      }
-      setStatusType('error');
-    }
-  };
-
-  const handleClear = async () => {
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-      if (tab.id) {
-        await chrome.tabs.sendMessage(tab.id, {
-          type: 'clearTranslations',
-          config
-        });
-
-        setStatus('✅ Translations cleared');
-        setStatusType('success');
-      }
-    } catch (error) {
-      console.error('Clear error:', error);
-      setStatus('❌ Failed to clear translations');
-      setStatusType('error');
-    }
-  };
+  const statusInfo = getStatusInfo();
 
   const handleSourceLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newConfig = {
@@ -110,7 +44,6 @@ const Popup: React.FC = () => {
       sourceLang: e.target.value as 'zh' | 'en'
     };
     setConfig(newConfig);
-    StorageManager.setTranslationConfig(newConfig);
   };
 
   const handleTargetLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -119,7 +52,6 @@ const Popup: React.FC = () => {
       targetLang: e.target.value as 'zh' | 'en'
     };
     setConfig(newConfig);
-    StorageManager.setTranslationConfig(newConfig);
   };
 
   const openSettings = () => {
@@ -161,22 +93,24 @@ const Popup: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={handleTranslate}
+            onClick={translatePage}
+            disabled={translationStatus === 'translating'}
             style={{
               flex: 1,
               padding: '10px',
-              background: '#007acc',
+              background: translationStatus === 'translating' ? '#6c757d' : '#007acc',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: 'pointer'
+              cursor: translationStatus === 'translating' ? 'not-allowed' : 'pointer',
+              opacity: translationStatus === 'translating' ? 0.6 : 1
             }}
           >
-            Translate Page
+            {translationStatus === 'translating' ? 'Translating...' : 'Translate Page'}
           </button>
           <button
-            onClick={handleClear}
+            onClick={clearTranslations}
             style={{
               flex: 1,
               padding: '10px',
@@ -215,13 +149,13 @@ const Popup: React.FC = () => {
           borderRadius: '4px',
           fontSize: '12px',
           textAlign: 'center',
-          background: statusType === 'success' ? '#d4edda' :
-                     statusType === 'error' ? '#f8d7da' : '#d1ecf1',
-          color: statusType === 'success' ? '#155724' :
-                statusType === 'error' ? '#721c24' : '#0c5460'
+          background: statusInfo.type === 'success' ? '#d4edda' :
+                     statusInfo.type === 'error' ? '#f8d7da' : '#d1ecf1',
+          color: statusInfo.type === 'success' ? '#155724' :
+                statusInfo.type === 'error' ? '#721c24' : '#0c5460'
         }}
       >
-        {status}
+        {statusInfo.message}
       </div>
     </div>
   );

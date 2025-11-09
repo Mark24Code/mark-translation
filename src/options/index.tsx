@@ -1,40 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AIConfig } from '../shared/types';
-import { StorageManager } from '../utils/storage';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { AIConfig, TranslationConfig } from '../shared/types';
 import { TranslationAPI } from '../shared/api';
+import {
+  aiConfigAtom,
+  translationConfigAtom,
+  errorMessageAtom,
+  loadConfigsAtom,
+  saveConfigsAtom,
+  resetConfigsAtom
+} from '../store';
 
 const Options: React.FC = () => {
-  const [config, setConfig] = useState<AIConfig>({
-    apiUrl: '',
-    model: '',
-    apiKey: '',
-    provider: 'deepseek'
-  });
+  const [config, setConfig] = useAtom(aiConfigAtom);
+  const [translationConfig, setTranslationConfig] = useAtom(translationConfigAtom);
+  const errorMessage = useAtomValue(errorMessageAtom);
+  const loadConfigs = useSetAtom(loadConfigsAtom);
+  const saveConfigs = useSetAtom(saveConfigsAtom);
+  const resetConfigs = useSetAtom(resetConfigsAtom);
+
   const [status, setStatus] = useState<string>('Configure your AI provider settings to enable translation');
   const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
-    loadConfig();
+    loadConfigs();
   }, []);
 
-  const loadConfig = async () => {
-    try {
-      const savedConfig = await StorageManager.getAIConfig();
-      if (savedConfig) {
-        setConfig(savedConfig);
-        setStatus('Settings loaded successfully');
-        setStatusType('success');
-      }
-    } catch (error) {
-      console.error('Failed to load config:', error);
+  useEffect(() => {
+    if (errorMessage) {
+      setStatus(errorMessage);
+      setStatusType('error');
     }
-  };
+  }, [errorMessage]);
 
   const handleInputChange = (field: keyof AIConfig, value: string) => {
-    setConfig(prev => ({
+    setConfig(prev => prev ? {
+      ...prev,
+      [field]: value
+    } : {
+      apiUrl: '',
+      model: '',
+      apiKey: '',
+      provider: 'deepseek',
+      [field]: value
+    });
+  };
+
+  const handleTranslationConfigChange = (field: keyof TranslationConfig, value: any) => {
+    setTranslationConfig(prev => ({
       ...prev,
       [field]: value
     }));
@@ -82,7 +98,7 @@ const Options: React.FC = () => {
       provider,
       apiUrl: providerConfig.apiUrl,
       model: providerConfig.defaultModel,
-      apiKey: config.apiKey // 保留现有的 API Key
+      apiKey: config?.apiKey || '' // 保留现有的 API Key
     });
   };
 
@@ -92,7 +108,7 @@ const Options: React.FC = () => {
       setStatus('Testing connection...');
       setStatusType('info');
 
-      if (!config.apiUrl || !config.model || !config.apiKey) {
+      if (!config?.apiUrl || !config?.model || !config?.apiKey) {
         throw new Error('Please fill in all fields');
       }
 
@@ -132,8 +148,8 @@ const Options: React.FC = () => {
       setStatus('Saving settings...');
       setStatusType('info');
 
-      if (!config.apiUrl || !config.model || !config.apiKey) {
-        throw new Error('Please fill in all fields');
+      if (!config?.apiUrl || !config?.model || !config?.apiKey) {
+        throw new Error('Please fill in all AI provider fields');
       }
 
       // 验证配置
@@ -145,7 +161,12 @@ const Options: React.FC = () => {
         throw new Error('API Key appears to be invalid');
       }
 
-      await StorageManager.setAIConfig(config);
+      // 验证并行任务数量
+      if (translationConfig.parallelTasks < 1 || translationConfig.parallelTasks > 20) {
+        throw new Error('Parallel tasks must be between 1 and 20');
+      }
+
+      await saveConfigs({ aiConfig: config, translationConfig });
       setStatus('✅ Settings saved successfully! You can now use the translation feature.');
       setStatusType('success');
     } catch (error) {
@@ -158,14 +179,8 @@ const Options: React.FC = () => {
   };
 
   const resetSettings = async () => {
-    if (confirm('Are you sure you want to reset all settings? This will clear your API configuration.')) {
-      await StorageManager.clearConfig();
-      setConfig({
-        apiUrl: '',
-        model: '',
-        apiKey: '',
-        provider: 'deepseek'
-      });
+    if (confirm('Are you sure you want to reset all settings? This will clear your API configuration and translation settings.')) {
+      await resetConfigs();
       setStatus('Settings reset to defaults');
       setStatusType('info');
     }
@@ -183,7 +198,7 @@ const Options: React.FC = () => {
             AI Provider
           </label>
           <select
-            value={config.provider}
+            value={config?.provider || 'deepseek'}
             onChange={(e) => handleProviderChange(e.target.value as AIConfig['provider'])}
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
             required
@@ -200,7 +215,7 @@ const Options: React.FC = () => {
           </label>
           <input
             type="url"
-            value={config.apiUrl}
+            value={config?.apiUrl || ''}
             onChange={(e) => handleInputChange('apiUrl', e.target.value)}
             placeholder="https://api.deepseek.com"
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
@@ -216,20 +231,20 @@ const Options: React.FC = () => {
             Model
           </label>
           <select
-            value={config.model}
+            value={config?.model || ''}
             onChange={(e) => handleInputChange('model', e.target.value)}
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
             required
           >
             <option value="">Select a model</option>
-            {providerConfigs[config.provider]?.models.map(model => (
+            {providerConfigs[config?.provider || 'deepseek']?.models.map(model => (
               <option key={model.value} value={model.value}>
                 {model.label}
               </option>
             ))}
           </select>
           <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            {providerConfigs[config.provider]?.helpText}
+            {providerConfigs[config?.provider || 'deepseek']?.helpText}
           </div>
         </div>
 
@@ -239,7 +254,7 @@ const Options: React.FC = () => {
           </label>
           <input
             type="password"
-            value={config.apiKey}
+            value={config?.apiKey || ''}
             onChange={(e) => handleInputChange('apiKey', e.target.value)}
             placeholder="Enter your API key"
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
@@ -250,11 +265,72 @@ const Options: React.FC = () => {
           </div>
         </div>
 
+        {/* Translation Settings */}
+        <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+          <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>Translation Settings</h2>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+              Parallel Translation Tasks
+            </label>
+            <input
+              type="number"
+              value={translationConfig.parallelTasks}
+              onChange={(e) => handleTranslationConfigChange('parallelTasks', parseInt(e.target.value) || 1)}
+              min="1"
+              max="20"
+              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            />
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              Number of translation requests to process simultaneously (1-20). Higher values may improve speed but consume more API credits.
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+              Auto-Translate
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={translationConfig.autoTranslate}
+                onChange={(e) => handleTranslationConfigChange('autoTranslate', e.target.checked)}
+              />
+              <span style={{ fontSize: '14px' }}>Automatically translate pages when they load</span>
+            </label>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+              Default Language Direction
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <select
+                value={translationConfig.sourceLang}
+                onChange={(e) => handleTranslationConfigChange('sourceLang', e.target.value as 'zh' | 'en')}
+                style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+              >
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+              </select>
+              <span style={{ color: '#666' }}>→</span>
+              <select
+                value={translationConfig.targetLang}
+                onChange={(e) => handleTranslationConfigChange('targetLang', e.target.value as 'zh' | 'en')}
+                style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+              >
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
           <button
             type="button"
             onClick={testConnection}
-            disabled={isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey}
+            disabled={isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey}
             style={{
               padding: '12px 24px',
               background: isTesting ? '#6c757d' : '#28a745',
@@ -262,15 +338,15 @@ const Options: React.FC = () => {
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 'not-allowed' : 'pointer',
-              opacity: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 0.6 : 1
+              cursor: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 'not-allowed' : 'pointer',
+              opacity: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 0.6 : 1
             }}
           >
             {isTesting ? 'Testing...' : 'Test Connection'}
           </button>
           <button
             type="submit"
-            disabled={isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey}
+            disabled={isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey}
             style={{
               padding: '12px 24px',
               background: isSaving ? '#6c757d' : '#007acc',
@@ -278,8 +354,8 @@ const Options: React.FC = () => {
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 'not-allowed' : 'pointer',
-              opacity: isTesting || isSaving || !config.apiUrl || !config.model || !config.apiKey ? 0.6 : 1
+              cursor: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 'not-allowed' : 'pointer',
+              opacity: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 0.6 : 1
             }}
           >
             {isSaving ? 'Saving...' : 'Save Settings'}

@@ -15,7 +15,8 @@ export class StorageManager {
     return result.translationConfig || {
       sourceLang: 'en',
       targetLang: 'zh',
-      autoTranslate: false
+      autoTranslate: false,
+      parallelTasks: 6
     };
   }
 

@@ -248,6 +248,9 @@ class TranslationManager {
     this.isTranslating = true;
 
     try {
+      // 先清除所有现有的翻译结果
+      this.clearTranslations();
+
       const paragraphs = this.getTextParagraphs();
       console.log(`Found ${paragraphs.length} paragraphs to translate`);
 
@@ -279,8 +282,20 @@ class TranslationManager {
 
       await this.processTranslationBatch(translationTasks, parallelLimit);
 
+      // 发送翻译完成通知
+      chrome.runtime.sendMessage({
+        type: 'translationCompleted',
+        success: true
+      });
+
     } catch (error) {
       console.error('Page translation failed:', error);
+      // 发送翻译失败通知
+      chrome.runtime.sendMessage({
+        type: 'translationCompleted',
+        success: false,
+        error: error instanceof Error ? error.message : 'Translation failed'
+      });
     } finally {
       this.isTranslating = false;
     }

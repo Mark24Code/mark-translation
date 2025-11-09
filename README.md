@@ -91,7 +91,7 @@ mark-translation/
 - **前端框架**: React 18 + TypeScript
 - **构建工具**: Vite
 - **浏览器扩展**: Manifest V3
-- **状态管理**: Zustand
+- **状态管理**: Jotai
 - **HTTP 客户端**: Axios
 
 ## 许可证

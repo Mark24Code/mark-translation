@@ -1,8 +1,13 @@
 export interface AIConfig {
+  id: string;
+  name: string;
   apiUrl: string;
   model: string;
   apiKey: string;
   provider: 'deepseek' | 'openai' | 'claude';
+  isActive: boolean;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface TranslationConfig {
@@ -10,6 +15,12 @@ export interface TranslationConfig {
   targetLang: 'zh' | 'en';
   autoTranslate: boolean;
   parallelTasks: number;
+  activeAIConfigId: string | null;
+}
+
+export interface AppConfig {
+  aiConfigs: AIConfig[];
+  translationConfig: TranslationConfig;
 }
 
 export interface TranslationResult {

@@ -2,14 +2,26 @@ import sharp from 'sharp'
 import fs from 'fs'
 import path from 'path'
 
-async function generatePNGIcon(size, outputPath) {
-  // 创建一个简单的蓝色背景图标
+async function generatePNGIcon(size, type = 'idle', outputPath) {
+  const colors = {
+    idle: '#007acc',
+    success: '#28a745',
+    error: '#dc3545'
+  };
+
+  const symbols = {
+    idle: 'MT',
+    success: '✓',
+    error: '✗'
+  };
+
+  // 创建一个简单的背景图标
   const svgBuffer = Buffer.from(`
     <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${size}" height="${size}" fill="#007acc" rx="8"/>
+      <rect width="${size}" height="${size}" fill="${colors[type]}" rx="8"/>
       <text x="50%" y="50%" text-anchor="middle" dy="0.35em"
             font-family="Arial, sans-serif" font-size="${Math.floor(size * 0.4)}"
-            font-weight="bold" fill="white">MT</text>
+            font-weight="bold" fill="white">${symbols[type]}</text>
     </svg>
   `)
 
@@ -28,11 +40,14 @@ async function createIcons(distDir) {
 
   // 创建不同尺寸的图标
   const sizes = [16, 32, 48, 128]
+  const types = ['idle', 'success', 'error']
 
   for (const size of sizes) {
-    const pngPath = path.join(iconsDir, `icon-${size}.png`)
-    await generatePNGIcon(size, pngPath)
-    console.log(`✅ Created: ${pngPath}`)
+    for (const type of types) {
+      const pngPath = path.join(iconsDir, `icon-${type}-${size}.png`)
+      await generatePNGIcon(size, type, pngPath)
+      console.log(`✅ Created: ${pngPath}`)
+    }
   }
 }
 

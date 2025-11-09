@@ -1,17 +1,38 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { AIConfig, TranslationConfig } from '../shared/types';
+import { AIConfig, TranslationConfig, AppConfig } from '../shared/types';
+import { StorageManager } from '../utils/storage';
 
-// AI 配置状态
-export const aiConfigAtom = atomWithStorage<AIConfig | null>('aiConfig', null);
-
-// 翻译配置状态
-export const translationConfigAtom = atomWithStorage<TranslationConfig>('translationConfig', {
-  sourceLang: 'en',
-  targetLang: 'zh',
-  autoTranslate: false,
-  parallelTasks: 6
+// 应用配置状态
+export const appConfigAtom = atomWithStorage<AppConfig>('appConfig', {
+  aiConfigs: [],
+  translationConfig: {
+    sourceLang: 'en',
+    targetLang: 'zh',
+    autoTranslate: false,
+    parallelTasks: 6,
+    activeAIConfigId: null
+  }
 });
+
+// AI 配置列表
+export const aiConfigsAtom = atom(
+  (get) => get(appConfigAtom).aiConfigs
+);
+
+// 激活的 AI 配置
+export const activeAIConfigAtom = atom(
+  (get) => {
+    const appConfig = get(appConfigAtom);
+    const activeConfig = appConfig.aiConfigs.find(config => config.isActive);
+    return activeConfig || (appConfig.aiConfigs.length > 0 ? appConfig.aiConfigs[0] : null);
+  }
+);
+
+// 翻译配置
+export const translationConfigAtom = atom(
+  (get) => get(appConfigAtom).translationConfig
+);
 
 // 翻译状态
 export const translationStatusAtom = atom<'idle' | 'translating' | 'success' | 'error'>('idle');
@@ -38,27 +59,8 @@ export const loadConfigsAtom = atom(
   null,
   async (get, set) => {
     try {
-      // 从 chrome.storage 加载配置
-      const [aiConfigResult, translationConfigResult] = await Promise.all([
-        new Promise<AIConfig | null>((resolve) => {
-          chrome.storage.sync.get('aiConfig', (result) => {
-            resolve(result.aiConfig || null);
-          });
-        }),
-        new Promise<TranslationConfig>((resolve) => {
-          chrome.storage.sync.get('translationConfig', (result) => {
-            resolve(result.translationConfig || {
-              sourceLang: 'en',
-              targetLang: 'zh',
-              autoTranslate: false,
-              parallelTasks: 6
-            });
-          });
-        })
-      ]);
-
-      set(aiConfigAtom, aiConfigResult);
-      set(translationConfigAtom, translationConfigResult);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
     } catch (error) {
       console.error('Failed to load configs:', error);
       set(errorMessageAtom, 'Failed to load settings');
@@ -66,29 +68,99 @@ export const loadConfigsAtom = atom(
   }
 );
 
-// 保存配置的导出器
-export const saveConfigsAtom = atom(
+// 保存应用配置的导出器
+export const saveAppConfigAtom = atom(
   null,
-  async (get, set, { aiConfig, translationConfig }: { aiConfig?: AIConfig | null; translationConfig?: TranslationConfig }) => {
+  async (get, set, appConfig: AppConfig) => {
     try {
-      const updates: Record<string, any> = {};
-
-      if (aiConfig !== undefined) {
-        set(aiConfigAtom, aiConfig);
-        updates.aiConfig = aiConfig;
-      }
-
-      if (translationConfig !== undefined) {
-        set(translationConfigAtom, translationConfig);
-        updates.translationConfig = translationConfig;
-      }
-
-      if (Object.keys(updates).length > 0) {
-        await chrome.storage.sync.set(updates);
-      }
+      await StorageManager.setAppConfig(appConfig);
+      set(appConfigAtom, appConfig);
     } catch (error) {
-      console.error('Failed to save configs:', error);
+      console.error('Failed to save config:', error);
       set(errorMessageAtom, 'Failed to save settings');
+    }
+  }
+);
+
+// 添加 AI 配置的导出器
+export const addAIConfigAtom = atom(
+  null,
+  async (get, set, config: Omit<AIConfig, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const configId = await StorageManager.addAIConfig(config);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+      return configId;
+    } catch (error) {
+      console.error('Failed to add AI config:', error);
+      set(errorMessageAtom, 'Failed to add AI configuration');
+      throw error;
+    }
+  }
+);
+
+// 更新 AI 配置的导出器
+export const updateAIConfigAtom = atom(
+  null,
+  async (get, set, { configId, updates }: { configId: string; updates: Partial<AIConfig> }) => {
+    try {
+      await StorageManager.updateAIConfig(configId, updates);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to update AI config:', error);
+      set(errorMessageAtom, 'Failed to update AI configuration');
+      throw error;
+    }
+  }
+);
+
+// 删除 AI 配置的导出器
+export const deleteAIConfigAtom = atom(
+  null,
+  async (get, set, configId: string) => {
+    try {
+      await StorageManager.deleteAIConfig(configId);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to delete AI config:', error);
+      set(errorMessageAtom, 'Failed to delete AI configuration');
+      throw error;
+    }
+  }
+);
+
+// 设置激活 AI 配置的导出器
+export const setActiveAIConfigAtom = atom(
+  null,
+  async (get, set, configId: string) => {
+    try {
+      await StorageManager.setActiveAIConfig(configId);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to set active AI config:', error);
+      set(errorMessageAtom, 'Failed to set active configuration');
+      throw error;
+    }
+  }
+);
+
+// 更新翻译配置的导出器
+export const updateTranslationConfigAtom = atom(
+  null,
+  async (get, set, updates: Partial<TranslationConfig>) => {
+    try {
+      const currentConfig = get(translationConfigAtom);
+      const newConfig = { ...currentConfig, ...updates };
+      await StorageManager.setTranslationConfig(newConfig);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to update translation config:', error);
+      set(errorMessageAtom, 'Failed to update translation settings');
+      throw error;
     }
   }
 );
@@ -98,14 +170,18 @@ export const resetConfigsAtom = atom(
   null,
   async (get, set) => {
     try {
-      await chrome.storage.sync.remove(['aiConfig', 'translationConfig']);
-      set(aiConfigAtom, null);
-      set(translationConfigAtom, {
-        sourceLang: 'en',
-        targetLang: 'zh',
-        autoTranslate: false,
-        parallelTasks: 6
-      });
+      await StorageManager.clearConfig();
+      const defaultConfig = {
+        aiConfigs: [],
+        translationConfig: {
+          sourceLang: 'en',
+          targetLang: 'zh',
+          autoTranslate: false,
+          parallelTasks: 6,
+          activeAIConfigId: null
+        }
+      };
+      set(appConfigAtom, defaultConfig);
       set(errorMessageAtom, null);
     } catch (error) {
       console.error('Failed to reset configs:', error);
@@ -114,14 +190,44 @@ export const resetConfigsAtom = atom(
   }
 );
 
+// 导出配置的导出器
+export const exportConfigsAtom = atom(
+  null,
+  async (get, set) => {
+    try {
+      return await StorageManager.exportConfig();
+    } catch (error) {
+      console.error('Failed to export configs:', error);
+      set(errorMessageAtom, 'Failed to export settings');
+      throw error;
+    }
+  }
+);
+
+// 导入配置的导出器
+export const importConfigsAtom = atom(
+  null,
+  async (get, set, configJson: string) => {
+    try {
+      await StorageManager.importConfig(configJson);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to import configs:', error);
+      set(errorMessageAtom, 'Failed to import settings');
+      throw error;
+    }
+  }
+);
+
 // 翻译操作的导出器
 export const translatePageAtom = atom(
   null,
   async (get, set) => {
-    const aiConfig = get(aiConfigAtom);
+    const activeAIConfig = get(activeAIConfigAtom);
     const translationConfig = get(translationConfigAtom);
 
-    if (!aiConfig) {
+    if (!activeAIConfig) {
       set(errorMessageAtom, 'Please configure AI settings first');
       return;
     }
@@ -147,6 +253,14 @@ export const translatePageAtom = atom(
 
       if (response?.success) {
         set(translationStatusAtom, 'success');
+
+        // 更新插件图标为打钩状态
+        await updateExtensionIcon('success');
+
+        // 5秒后恢复原始图标
+        setTimeout(() => {
+          updateExtensionIcon('idle');
+        }, 5000);
       } else {
         throw new Error('Translation failed');
       }
@@ -185,3 +299,35 @@ export const clearTranslationsAtom = atom(
     }
   }
 );
+
+// 更新插件图标的辅助函数
+async function updateExtensionIcon(status: 'idle' | 'success' | 'error') {
+  try {
+    const iconPaths = {
+      idle: {
+        16: '/icons/icon-idle-16.png',
+        32: '/icons/icon-idle-32.png',
+        48: '/icons/icon-idle-48.png',
+        128: '/icons/icon-idle-128.png'
+      },
+      success: {
+        16: '/icons/icon-success-16.png',
+        32: '/icons/icon-success-32.png',
+        48: '/icons/icon-success-48.png',
+        128: '/icons/icon-success-128.png'
+      },
+      error: {
+        16: '/icons/icon-error-16.png',
+        32: '/icons/icon-error-32.png',
+        48: '/icons/icon-error-48.png',
+        128: '/icons/icon-error-128.png'
+      }
+    };
+
+    await chrome.action.setIcon({
+      path: iconPaths[status]
+    });
+  } catch (error) {
+    console.error('Failed to update extension icon:', error);
+  }
+}

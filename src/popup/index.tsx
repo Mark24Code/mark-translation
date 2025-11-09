@@ -7,16 +7,22 @@ import {
   errorMessageAtom,
   loadConfigsAtom,
   translatePageAtom,
-  clearTranslationsAtom
+  clearTranslationsAtom,
+  aiConfigsAtom,
+  activeAIConfigAtom,
+  setActiveAIConfigAtom
 } from '../store';
 
 const Popup: React.FC = () => {
   const [config, setConfig] = useAtom(translationConfigAtom);
   const translationStatus = useAtomValue(translationStatusAtom);
   const errorMessage = useAtomValue(errorMessageAtom);
+  const aiConfigs = useAtomValue(aiConfigsAtom);
+  const activeAIConfig = useAtomValue(activeAIConfigAtom);
   const loadConfigs = useSetAtom(loadConfigsAtom);
   const translatePage = useSetAtom(translatePageAtom);
   const clearTranslations = useSetAtom(clearTranslationsAtom);
+  const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
 
   useEffect(() => {
     loadConfigs();
@@ -24,6 +30,10 @@ const Popup: React.FC = () => {
 
   // 获取状态显示
   const getStatusInfo = () => {
+    if (!activeAIConfig) {
+      return { message: '⚠️ No active AI configuration', type: 'error' as const };
+    }
+
     switch (translationStatus) {
       case 'translating':
         return { message: 'Translating...', type: 'info' as const };
@@ -54,6 +64,13 @@ const Popup: React.FC = () => {
     setConfig(newConfig);
   };
 
+  const handleAIConfigChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const configId = e.target.value;
+    if (configId) {
+      await setActiveAIConfig(configId);
+    }
+  };
+
   const openSettings = () => {
     try {
       console.log('Opening options page...');
@@ -72,6 +89,53 @@ const Popup: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* AI Configuration Selection */}
+        {aiConfigs.length > 0 ? (
+          <div>
+            <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
+              AI Configuration
+            </label>
+            <select
+              value={activeAIConfig?.id || ''}
+              onChange={handleAIConfigChange}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            >
+              {aiConfigs.map(config => (
+                <option key={config.id} value={config.id}>
+                  {config.name} {config.isActive ? '✓' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div style={{
+            padding: '12px',
+            background: '#fff3cd',
+            border: '1px solid #ffeaa7',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '12px', color: '#856404', marginBottom: '8px' }}>
+              No AI configurations found
+            </div>
+            <button
+              onClick={openSettings}
+              style={{
+                padding: '6px 12px',
+                background: '#007acc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              Add Configuration
+            </button>
+          </div>
+        )}
+
+        {/* Language Selection */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <select
             value={config.sourceLang}
@@ -94,17 +158,17 @@ const Popup: React.FC = () => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={translatePage}
-            disabled={translationStatus === 'translating'}
+            disabled={translationStatus === 'translating' || !activeAIConfig}
             style={{
               flex: 1,
               padding: '10px',
-              background: translationStatus === 'translating' ? '#6c757d' : '#007acc',
+              background: translationStatus === 'translating' || !activeAIConfig ? '#6c757d' : '#007acc',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: translationStatus === 'translating' ? 'not-allowed' : 'pointer',
-              opacity: translationStatus === 'translating' ? 0.6 : 1
+              cursor: translationStatus === 'translating' || !activeAIConfig ? 'not-allowed' : 'pointer',
+              opacity: translationStatus === 'translating' || !activeAIConfig ? 0.6 : 1
             }}
           >
             {translationStatus === 'translating' ? 'Translating...' : 'Translate Page'}

@@ -4,26 +4,49 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { AIConfig, TranslationConfig } from '../shared/types';
 import { TranslationAPI } from '../shared/api';
 import {
-  aiConfigAtom,
+  aiConfigsAtom,
+  activeAIConfigAtom,
   translationConfigAtom,
   errorMessageAtom,
   loadConfigsAtom,
-  saveConfigsAtom,
-  resetConfigsAtom
+  addAIConfigAtom,
+  updateAIConfigAtom,
+  deleteAIConfigAtom,
+  setActiveAIConfigAtom,
+  updateTranslationConfigAtom,
+  resetConfigsAtom,
+  exportConfigsAtom,
+  importConfigsAtom
 } from '../store';
 
 const Options: React.FC = () => {
-  const [config, setConfig] = useAtom(aiConfigAtom);
-  const [translationConfig, setTranslationConfig] = useAtom(translationConfigAtom);
+  const aiConfigs = useAtomValue(aiConfigsAtom);
+  const activeAIConfig = useAtomValue(activeAIConfigAtom);
+  const translationConfig = useAtomValue(translationConfigAtom);
   const errorMessage = useAtomValue(errorMessageAtom);
   const loadConfigs = useSetAtom(loadConfigsAtom);
-  const saveConfigs = useSetAtom(saveConfigsAtom);
+  const addAIConfig = useSetAtom(addAIConfigAtom);
+  const updateAIConfig = useSetAtom(updateAIConfigAtom);
+  const deleteAIConfig = useSetAtom(deleteAIConfigAtom);
+  const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
+  const updateTranslationConfig = useSetAtom(updateTranslationConfigAtom);
   const resetConfigs = useSetAtom(resetConfigsAtom);
+  const exportConfigs = useSetAtom(exportConfigsAtom);
+  const importConfigs = useSetAtom(importConfigsAtom);
 
   const [status, setStatus] = useState<string>('Configure your AI provider settings to enable translation');
   const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [editingConfig, setEditingConfig] = useState<AIConfig | null>(null);
+  const [newConfig, setNewConfig] = useState<Omit<AIConfig, 'id' | 'createdAt' | 'updatedAt'>>({
+    name: '',
+    apiUrl: '',
+    model: '',
+    apiKey: '',
+    provider: 'deepseek',
+    isActive: false
+  });
 
   useEffect(() => {
     loadConfigs();
@@ -35,26 +58,6 @@ const Options: React.FC = () => {
       setStatusType('error');
     }
   }, [errorMessage]);
-
-  const handleInputChange = (field: keyof AIConfig, value: string) => {
-    setConfig(prev => prev ? {
-      ...prev,
-      [field]: value
-    } : {
-      apiUrl: '',
-      model: '',
-      apiKey: '',
-      provider: 'deepseek',
-      [field]: value
-    });
-  };
-
-  const handleTranslationConfigChange = (field: keyof TranslationConfig, value: any) => {
-    setTranslationConfig(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   // 提供商配置
   const providerConfigs = {
@@ -92,31 +95,136 @@ const Options: React.FC = () => {
     }
   };
 
-  const handleProviderChange = (provider: AIConfig['provider']) => {
-    const providerConfig = providerConfigs[provider];
-    setConfig({
-      provider,
-      apiUrl: providerConfig.apiUrl,
-      model: providerConfig.defaultModel,
-      apiKey: config?.apiKey || '' // 保留现有的 API Key
-    });
+  const handleNewConfigChange = (field: keyof typeof newConfig, value: string | boolean) => {
+    setNewConfig(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const testConnection = async () => {
+  const handleEditingConfigChange = (field: keyof AIConfig, value: string | boolean) => {
+    if (editingConfig) {
+      setEditingConfig(prev => prev ? {
+        ...prev,
+        [field]: value
+      } : null);
+    }
+  };
+
+  const handleProviderChange = (provider: AIConfig['provider'], isEditing: boolean = false) => {
+    const providerConfig = providerConfigs[provider];
+    if (isEditing && editingConfig) {
+      setEditingConfig({
+        ...editingConfig,
+        provider,
+        apiUrl: providerConfig.apiUrl,
+        model: providerConfig.defaultModel
+      });
+    } else {
+      setNewConfig({
+        ...newConfig,
+        provider,
+        apiUrl: providerConfig.apiUrl,
+        model: providerConfig.defaultModel
+      });
+    }
+  };
+
+  const handleAddConfig = async () => {
     try {
-      setIsTesting(true);
-      setStatus('Testing connection...');
+      setIsSaving(true);
+      setStatus('Adding configuration...');
       setStatusType('info');
 
-      if (!config?.apiUrl || !config?.model || !config?.apiKey) {
+      if (!newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey) {
         throw new Error('Please fill in all fields');
       }
+
+      await addAIConfig(newConfig);
+      setNewConfig({
+        name: '',
+        apiUrl: '',
+        model: '',
+        apiKey: '',
+        provider: 'deepseek',
+        isActive: false
+      });
+      setStatus('✅ Configuration added successfully!');
+      setStatusType('success');
+    } catch (error) {
+      console.error('Failed to add config:', error);
+      setStatus(`❌ Failed to add configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatusType('error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdateConfig = async () => {
+    if (!editingConfig) return;
+
+    try {
+      setIsSaving(true);
+      setStatus('Updating configuration...');
+      setStatusType('info');
+
+      if (!editingConfig.name || !editingConfig.apiUrl || !editingConfig.model || !editingConfig.apiKey) {
+        throw new Error('Please fill in all fields');
+      }
+
+      await updateAIConfig({
+        configId: editingConfig.id,
+        updates: editingConfig
+      });
+      setEditingConfig(null);
+      setStatus('✅ Configuration updated successfully!');
+      setStatusType('success');
+    } catch (error) {
+      console.error('Failed to update config:', error);
+      setStatus(`❌ Failed to update configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatusType('error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteConfig = async (configId: string) => {
+    if (confirm('Are you sure you want to delete this configuration?')) {
+      try {
+        await deleteAIConfig(configId);
+        setStatus('✅ Configuration deleted successfully!');
+        setStatusType('success');
+      } catch (error) {
+        console.error('Failed to delete config:', error);
+        setStatus(`❌ Failed to delete configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setStatusType('error');
+      }
+    }
+  };
+
+  const handleSetActiveConfig = async (configId: string) => {
+    try {
+      await setActiveAIConfig(configId);
+      setStatus('✅ Active configuration updated!');
+      setStatusType('success');
+    } catch (error) {
+      console.error('Failed to set active config:', error);
+      setStatus(`❌ Failed to set active configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatusType('error');
+    }
+  };
+
+  const testConnection = async (config: AIConfig) => {
+    try {
+      setIsTesting(true);
+      setStatus(`Testing connection for ${config.name}...`);
+      setStatusType('info');
 
       const translationAPI = new TranslationAPI(config);
       const result = await translationAPI.translate('Hello, how are you today?', 'en', 'zh');
 
       if (result.success) {
-        setStatus(`✅ Connection successful! Test translation: "${result.translated}"`);
+        setStatus(`✅ Connection successful for ${config.name}! Test translation: "${result.translated}"`);
         setStatusType('success');
       } else {
         throw new Error(result.error || 'Connection test failed');
@@ -126,13 +234,13 @@ const Options: React.FC = () => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
-        setStatus('❌ Connection failed: Invalid API Key');
+        setStatus(`❌ Connection failed for ${config.name}: Invalid API Key`);
       } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-        setStatus('❌ Connection failed: Invalid API URL or model');
+        setStatus(`❌ Connection failed for ${config.name}: Invalid API URL or model`);
       } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-        setStatus('❌ Connection failed: Network error - check your internet connection');
+        setStatus(`❌ Connection failed for ${config.name}: Network error - check your internet connection`);
       } else {
-        setStatus(`❌ Connection failed: ${errorMessage}`);
+        setStatus(`❌ Connection failed for ${config.name}: ${errorMessage}`);
       }
       setStatusType('error');
     } finally {
@@ -140,136 +248,349 @@ const Options: React.FC = () => {
     }
   };
 
-  const saveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleExportConfig = async () => {
     try {
-      setIsSaving(true);
-      setStatus('Saving settings...');
-      setStatusType('info');
-
-      if (!config?.apiUrl || !config?.model || !config?.apiKey) {
-        throw new Error('Please fill in all AI provider fields');
-      }
-
-      // 验证配置
-      if (!config.apiUrl.startsWith('https://')) {
-        throw new Error('API URL must use HTTPS');
-      }
-
-      if (config.apiKey.length < 10) {
-        throw new Error('API Key appears to be invalid');
-      }
-
-      // 验证并行任务数量
-      if (translationConfig.parallelTasks < 1 || translationConfig.parallelTasks > 20) {
-        throw new Error('Parallel tasks must be between 1 and 20');
-      }
-
-      await saveConfigs({ aiConfig: config, translationConfig });
-      setStatus('✅ Settings saved successfully! You can now use the translation feature.');
+      const configJson = await exportConfigs();
+      const blob = new Blob([configJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mark-translation-config.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus('✅ Configuration exported successfully!');
       setStatusType('success');
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      setStatus(`❌ Failed to save settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to export config:', error);
+      setStatus(`❌ Failed to export configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setStatusType('error');
-    } finally {
-      setIsSaving(false);
     }
   };
 
-  const resetSettings = async () => {
-    if (confirm('Are you sure you want to reset all settings? This will clear your API configuration and translation settings.')) {
+  const handleImportConfig = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const configJson = e.target?.result as string;
+        await importConfigs(configJson);
+        setStatus('✅ Configuration imported successfully!');
+        setStatusType('success');
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error('Failed to import config:', error);
+      setStatus(`❌ Failed to import configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatusType('error');
+    }
+
+    // 重置文件输入
+    event.target.value = '';
+  };
+
+  const handleResetConfig = async () => {
+    if (confirm('Are you sure you want to reset all settings? This will clear all configurations.')) {
       await resetConfigs();
       setStatus('Settings reset to defaults');
       setStatusType('info');
     }
   };
 
+  const handleTranslationConfigChange = (field: keyof TranslationConfig, value: any) => {
+    updateTranslationConfig({ [field]: value });
+  };
+
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ margin: 0, color: '#333' }}>Mark Translation Settings</h1>
       </div>
 
-      <form onSubmit={saveSettings}>
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-            AI Provider
-          </label>
-          <select
-            value={config?.provider || 'deepseek'}
-            onChange={(e) => handleProviderChange(e.target.value as AIConfig['provider'])}
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-            required
-          >
-            <option value="deepseek">DeepSeek</option>
-            <option value="openai">OpenAI</option>
-            <option value="claude">Claude</option>
-          </select>
+      {/* AI Configurations Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>AI Configurations</h2>
+
+        {/* Configuration List */}
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>Your Configurations</h3>
+
+          {aiConfigs.length === 0 ? (
+            <div style={{
+              padding: '20px',
+              background: '#f8f9fa',
+              borderRadius: '4px',
+              textAlign: 'center',
+              color: '#666'
+            }}>
+              No configurations yet. Add your first configuration below.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {aiConfigs.map(config => (
+                <div key={config.id} style={{
+                  padding: '15px',
+                  border: `2px solid ${config.isActive ? '#007acc' : '#ddd'}`,
+                  borderRadius: '6px',
+                  background: config.isActive ? '#f0f8ff' : '#fff'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div>
+                      <strong style={{ color: '#333' }}>{config.name}</strong>
+                      {config.isActive && (
+                        <span style={{
+                          marginLeft: '10px',
+                          padding: '2px 8px',
+                          background: '#28a745',
+                          color: 'white',
+                          borderRadius: '12px',
+                          fontSize: '12px'
+                        }}>
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {!config.isActive && (
+                        <button
+                          onClick={() => handleSetActiveConfig(config.id)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#007acc',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Set Active
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setEditingConfig(config)}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#f8f9fa',
+                          color: '#333',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => testConnection(config)}
+                        disabled={isTesting}
+                        style={{
+                          padding: '6px 12px',
+                          background: isTesting ? '#6c757d' : '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: isTesting ? 'not-allowed' : 'pointer',
+                          opacity: isTesting ? 0.6 : 1
+                        }}
+                      >
+                        {isTesting ? 'Testing...' : 'Test'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteConfig(config.id)}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#666' }}>
+                    <div>Provider: {providerConfigs[config.provider]?.name}</div>
+                    <div>Model: {config.model}</div>
+                    <div>API URL: {config.apiUrl}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-            API URL
-          </label>
-          <input
-            type="url"
-            value={config?.apiUrl || ''}
-            onChange={(e) => handleInputChange('apiUrl', e.target.value)}
-            placeholder="https://api.deepseek.com"
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-            required
-          />
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            Examples: https://api.deepseek.com, https://api.openai.com, https://api.anthropic.com
+        {/* Add/Edit Configuration Form */}
+        <div style={{
+          padding: '20px',
+          background: '#f8f9fa',
+          borderRadius: '4px',
+          border: '1px solid #ddd'
+        }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>
+            {editingConfig ? 'Edit Configuration' : 'Add New Configuration'}
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+                Configuration Name
+              </label>
+              <input
+                type="text"
+                value={editingConfig ? editingConfig.name : newConfig.name}
+                onChange={(e) => editingConfig
+                  ? handleEditingConfigChange('name', e.target.value)
+                  : handleNewConfigChange('name', e.target.value)
+                }
+                placeholder="My DeepSeek Config"
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+                AI Provider
+              </label>
+              <select
+                value={editingConfig ? editingConfig.provider : newConfig.provider}
+                onChange={(e) => handleProviderChange(e.target.value as AIConfig['provider'], !!editingConfig)}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                required
+              >
+                <option value="deepseek">DeepSeek</option>
+                <option value="openai">OpenAI</option>
+                <option value="claude">Claude</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+                API URL
+              </label>
+              <input
+                type="url"
+                value={editingConfig ? editingConfig.apiUrl : newConfig.apiUrl}
+                onChange={(e) => editingConfig
+                  ? handleEditingConfigChange('apiUrl', e.target.value)
+                  : handleNewConfigChange('apiUrl', e.target.value)
+                }
+                placeholder="https://api.deepseek.com"
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+                Model
+              </label>
+              <select
+                value={editingConfig ? editingConfig.model : newConfig.model}
+                onChange={(e) => editingConfig
+                  ? handleEditingConfigChange('model', e.target.value)
+                  : handleNewConfigChange('model', e.target.value)
+                }
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                required
+              >
+                <option value="">Select a model</option>
+                {providerConfigs[editingConfig ? editingConfig.provider : newConfig.provider]?.models.map(model => (
+                  <option key={model.value} value={model.value}>
+                    {model.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+                API Key
+              </label>
+              <input
+                type="password"
+                value={editingConfig ? editingConfig.apiKey : newConfig.apiKey}
+                onChange={(e) => editingConfig
+                  ? handleEditingConfigChange('apiKey', e.target.value)
+                  : handleNewConfigChange('apiKey', e.target.value)
+                }
+                placeholder="Enter your API key"
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {editingConfig ? (
+                <>
+                  <button
+                    onClick={handleUpdateConfig}
+                    disabled={isSaving}
+                    style={{
+                      padding: '12px 24px',
+                      background: isSaving ? '#6c757d' : '#007acc',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      cursor: isSaving ? 'not-allowed' : 'pointer',
+                      opacity: isSaving ? 0.6 : 1
+                    }}
+                  >
+                    {isSaving ? 'Updating...' : 'Update Configuration'}
+                  </button>
+                  <button
+                    onClick={() => setEditingConfig(null)}
+                    style={{
+                      padding: '12px 24px',
+                      background: '#f8f9fa',
+                      color: '#333',
+                      border: '1px solid #ddd',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleAddConfig}
+                  disabled={isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey}
+                  style={{
+                    padding: '12px 24px',
+                    background: isSaving ? '#6c757d' : '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    cursor: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 'not-allowed' : 'pointer',
+                    opacity: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 0.6 : 1
+                  }}
+                >
+                  {isSaving ? 'Adding...' : 'Add Configuration'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-            Model
-          </label>
-          <select
-            value={config?.model || ''}
-            onChange={(e) => handleInputChange('model', e.target.value)}
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-            required
-          >
-            <option value="">Select a model</option>
-            {providerConfigs[config?.provider || 'deepseek']?.models.map(model => (
-              <option key={model.value} value={model.value}>
-                {model.label}
-              </option>
-            ))}
-          </select>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            {providerConfigs[config?.provider || 'deepseek']?.helpText}
-          </div>
-        </div>
+      {/* Translation Settings Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>Translation Settings</h2>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-            API Key
-          </label>
-          <input
-            type="password"
-            value={config?.apiKey || ''}
-            onChange={(e) => handleInputChange('apiKey', e.target.value)}
-            placeholder="Enter your API key"
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
-            required
-          />
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            Your API key will be stored securely in browser storage
-          </div>
-        </div>
-
-        {/* Translation Settings */}
-        <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-          <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>Translation Settings</h2>
-
-          <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
               Parallel Translation Tasks
             </label>
@@ -286,7 +607,7 @@ const Options: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
+          <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
               Auto-Translate
             </label>
@@ -300,7 +621,7 @@ const Options: React.FC = () => {
             </label>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
+          <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
               Default Language Direction
             </label>
@@ -325,45 +646,49 @@ const Options: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+      {/* Import/Export Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>Backup & Restore</h2>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            type="button"
-            onClick={testConnection}
-            disabled={isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey}
+            onClick={handleExportConfig}
             style={{
               padding: '12px 24px',
-              background: isTesting ? '#6c757d' : '#28a745',
+              background: '#007acc',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 'not-allowed' : 'pointer',
-              opacity: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 0.6 : 1
+              cursor: 'pointer'
             }}
           >
-            {isTesting ? 'Testing...' : 'Test Connection'}
+            Export Configuration
           </button>
+
+          <label style={{
+            padding: '12px 24px',
+            background: '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'inline-block'
+          }}>
+            Import Configuration
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImportConfig}
+              style={{ display: 'none' }}
+            />
+          </label>
+
           <button
-            type="submit"
-            disabled={isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey}
-            style={{
-              padding: '12px 24px',
-              background: isSaving ? '#6c757d' : '#007acc',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 'not-allowed' : 'pointer',
-              opacity: isTesting || isSaving || !config?.apiUrl || !config?.model || !config?.apiKey ? 0.6 : 1
-            }}
-          >
-            {isSaving ? 'Saving...' : 'Save Settings'}
-          </button>
-          <button
-            type="button"
-            onClick={resetSettings}
-            disabled={isTesting || isSaving}
+            onClick={handleResetConfig}
             style={{
               padding: '12px 24px',
               background: '#f8f9fa',
@@ -371,15 +696,15 @@ const Options: React.FC = () => {
               border: '1px solid #ddd',
               borderRadius: '6px',
               fontSize: '14px',
-              cursor: isTesting || isSaving ? 'not-allowed' : 'pointer',
-              opacity: isTesting || isSaving ? 0.6 : 1
+              cursor: 'pointer'
             }}
           >
-            Reset
+            Reset All Settings
           </button>
         </div>
-      </form>
+      </div>
 
+      {/* Status Display */}
       <div
         style={{
           marginTop: '20px',
@@ -398,14 +723,15 @@ const Options: React.FC = () => {
         {status}
       </div>
 
+      {/* Help Section */}
       <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '4px', marginTop: '20px' }}>
         <h3 style={{ marginTop: '0', color: '#333' }}>Getting Started</h3>
         <div style={{ lineHeight: '1.6' }}>
-          <p><strong>1. Choose a provider:</strong></p>
+          <p><strong>1. Add AI Configurations:</strong></p>
           <ul style={{ margin: '0 0 15px 20px', padding: '0' }}>
-            <li><strong>DeepSeek</strong>: Free tier available, excellent Chinese support</li>
-            <li><strong>OpenAI</strong>: High quality translations, paid service</li>
-            <li><strong>Claude</strong>: Best for complex translations</li>
+            <li>Create multiple configurations for different AI providers</li>
+            <li>Set one configuration as active for translations</li>
+            <li>Test connections before using</li>
           </ul>
 
           <p><strong>2. Get your API key:</strong></p>
@@ -415,7 +741,7 @@ const Options: React.FC = () => {
             <li>Claude: <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a></li>
           </ul>
 
-          <p><strong>3. Test connection before saving</strong> to verify your settings</p>
+          <p><strong>3. Backup your settings</strong> using the export feature</p>
         </div>
       </div>
     </div>

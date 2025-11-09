@@ -2,20 +2,29 @@ import { AIConfig, TranslationConfig, AppConfig, TranslationStyle } from '../sha
 
 export class StorageManager {
   static async getAppConfig(): Promise<AppConfig> {
-    const result = await chrome.storage.sync.get('appConfig');
-    return result.appConfig || {
-      aiConfigs: [],
-      translationConfig: {
-        sourceLang: 'en',
-        targetLang: 'zh',
-        autoTranslate: false,
-        parallelTasks: 6,
-        activeAIConfigId: null,
-        activeTranslationStyleId: null
-      },
-      translationStyles: this.getBuiltInTranslationStyles(),
-      language: 'zh'
-    };
+    return new Promise((resolve) => {
+      chrome.storage.sync.get('appConfig', (result) => {
+        // Firefox 兼容性处理：result 可能为 undefined 或空对象
+        const appConfig = result?.appConfig;
+        if (appConfig) {
+          resolve(appConfig);
+        } else {
+          resolve({
+            aiConfigs: [],
+            translationConfig: {
+              sourceLang: 'en',
+              targetLang: 'zh',
+              autoTranslate: false,
+              parallelTasks: 6,
+              activeAIConfigId: null,
+              activeTranslationStyleId: null
+            },
+            translationStyles: this.getBuiltInTranslationStyles(),
+            language: 'zh'
+          });
+        }
+      });
+    });
   }
 
   static async setAppConfig(config: AppConfig): Promise<void> {

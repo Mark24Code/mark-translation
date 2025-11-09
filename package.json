@@ -9,8 +9,11 @@
     "preview": "vite preview",
     "build:firefox": "vite build --mode firefox && node scripts/post-build.js firefox",
     "build:chrome": "vite build --mode chrome && node scripts/post-build.js chrome",
-    "package:firefox": "npm run build:firefox && cd dist/firefox && zip -r ../mark-translation-firefox.zip . && cd ../.. && echo '✅ Firefox extension packaged: dist/mark-translation-firefox.zip'",
-    "package:chrome": "npm run build:chrome && cd dist/chrome && zip -r ../mark-translation-chrome.zip . && cd ../.. && echo '✅ Chrome extension packaged: dist/mark-translation-chrome.zip'"
+    "package:firefox": "npm run build:firefox && node scripts/package.js firefox",
+    "package:chrome": "npm run build:chrome && node scripts/package.js chrome",
+    "package:all": "node scripts/package.js",
+    "clean": "rm -rf dist/*.zip && echo '✅ Cleaned all packaged files'",
+    "dist": "npm run clean && npm run package:all"
   },
   "dependencies": {
     "axios": "^1.5.0",

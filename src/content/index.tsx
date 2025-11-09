@@ -7,7 +7,8 @@ import { createMatchingEngine } from '../shared/matching-engine';
 async function getLanguage(): Promise<'zh' | 'en'> {
   return new Promise((resolve) => {
     chrome.storage.sync.get('appConfig', (result) => {
-      const appConfig = result.appConfig;
+      // Firefox 兼容性处理：result 可能为 undefined 或空对象
+      const appConfig = result?.appConfig;
       const language = appConfig?.language || 'zh';
       resolve(language);
     });

@@ -176,50 +176,59 @@ class TranslationManager {
   // 在原文下方插入翻译
   private insertTranslation(originalElement: Element, translatedText: string) {
     const translationElement = document.createElement('div');
-    translationElement.className = 'mark-translation';
-    translationElement.style.cssText = `
-      margin-top: 8px;
-      padding: 8px 12px;
-      background: #f5f5f5;
-      border-left: 3px solid #007acc;
-      border-radius: 4px;
-      font-size: 0.9em;
-      color: #666;
-      font-style: italic;
-    `;
-    translationElement.textContent = translatedText;
+    translationElement.className = 'mark-translation-typing';
+
+    // 创建光标元素
+    const cursorElement = document.createElement('span');
+    cursorElement.className = 'typing-cursor';
+
+    // 初始为空内容
+    translationElement.textContent = '';
+    translationElement.appendChild(cursorElement);
 
     originalElement.parentNode?.insertBefore(translationElement, originalElement.nextSibling);
+
+    // 开始逐字显示
+    this.typeText(translationElement, translatedText, cursorElement);
+  }
+
+  // 逐字显示文本
+  private typeText(element: HTMLDivElement, text: string, cursorElement: HTMLSpanElement) {
+    let index = 0;
+    const speed = 30; // 每个字符的显示间隔（毫秒）
+
+    const typeNextChar = () => {
+      if (index < text.length) {
+        // 移除光标
+        cursorElement.remove();
+
+        // 添加下一个字符
+        element.textContent = text.substring(0, index + 1);
+
+        // 重新添加光标
+        element.appendChild(cursorElement);
+
+        index++;
+        setTimeout(typeNextChar, speed);
+      } else {
+        // 打字完成，移除光标并设置最终类名
+        cursorElement.remove();
+        element.className = 'mark-translation';
+      }
+    };
+
+    // 开始打字
+    setTimeout(typeNextChar, 100);
   }
 
   // 在原文下方插入加载状态
   private insertLoadingState(originalElement: Element): HTMLDivElement {
     const loadingElement = document.createElement('div');
     loadingElement.className = 'mark-translation-loading';
-    loadingElement.style.cssText = `
-      margin-top: 8px;
-      padding: 8px 12px;
-      background: #f8f9fa;
-      border-left: 3px solid #ffc107;
-      border-radius: 4px;
-      font-size: 0.9em;
-      color: #856404;
-      font-style: italic;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `;
 
-    // 创建加载动画
+    // 创建圆形loading动画
     const spinner = document.createElement('div');
-    spinner.style.cssText = `
-      width: 16px;
-      height: 16px;
-      border: 2px solid #f3f3f3;
-      border-top: 2px solid #007acc;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    `;
+    spinner.className = 'loading-spinner';
 
     const loadingText = document.createElement('span');
     loadingText.textContent = this.t('loading');
@@ -275,16 +284,6 @@ class TranslationManager {
           // 插入错误状态
           const errorElement = document.createElement('div');
           errorElement.className = 'mark-translation-error';
-          errorElement.style.cssText = `
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: #f8d7da;
-            border-left: 3px solid #dc3545;
-            border-radius: 4px;
-            font-size: 0.9em;
-            color: #721c24;
-            font-style: italic;
-          `;
           errorElement.textContent = this.t('translationFailed');
           task.targetElement.parentNode?.insertBefore(errorElement, task.targetElement.nextSibling);
         }
@@ -371,6 +370,56 @@ function injectStyles() {
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    .mark-translation {
+      margin-top: 8px;
+    }
+
+    .mark-translation-typing {
+      margin-top: 8px;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background-color: #007acc;
+      margin-left: 2px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% {
+        opacity: 1;
+      }
+      51%, 100% {
+        opacity: 0;
+      }
+    }
+
+    .mark-translation-loading {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .loading-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007acc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .mark-translation-error {
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: rgba(220, 53, 69, 0.1);
+      border-radius: 3px;
+      color: #721c24;
     }
   `;
   document.head.appendChild(style);
@@ -711,16 +760,6 @@ class ScrollTranslationManager extends TranslationManager {
   private insertErrorState(originalElement: Element, errorMessage: string) {
     const errorElement = document.createElement('div');
     errorElement.className = 'mark-translation-error';
-    errorElement.style.cssText = `
-      margin-top: 8px;
-      padding: 8px 12px;
-      background: #f8d7da;
-      border-left: 3px solid #dc3545;
-      border-radius: 4px;
-      font-size: 0.9em;
-      color: #721c24;
-      font-style: italic;
-    `;
     errorElement.textContent = errorMessage;
     originalElement.parentNode?.insertBefore(errorElement, originalElement.nextSibling);
   }

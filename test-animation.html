@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .original-text {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+
+        /* 复制扩展的动画样式 */
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .mark-translation {
+          margin-top: 8px;
+        }
+
+        .mark-translation-typing {
+          margin-top: 8px;
+        }
+
+        .typing-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 1em;
+          background-color: #007acc;
+          margin-left: 2px;
+          animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+          0%, 50% {
+            opacity: 1;
+          }
+          51%, 100% {
+            opacity: 0;
+          }
+        }
+
+        .mark-translation-loading {
+          margin-top: 8px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid #f3f3f3;
+          border-top: 2px solid #007acc;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        .mark-translation-error {
+          margin-top: 8px;
+          padding: 4px 8px;
+          background: rgba(220, 53, 69, 0.1);
+          border-radius: 3px;
+          color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>翻译动画效果测试</h1>
+
+    <div class="test-section">
+        <h2>测试内容</h2>
+
+        <div class="original-text">
+            <p>This is a sample paragraph that will be translated. It contains meaningful content for testing the translation animation effects.</p>
+        </div>
+
+        <button onclick="showTranslation()">显示翻译内容</button>
+        <button onclick="showLoading()">显示加载状态</button>
+        <button onclick="showError()">显示错误状态</button>
+        <button onclick="clearAll()">清除所有</button>
+    </div>
+
+    <div class="test-section">
+        <h2>动画效果说明</h2>
+        <ul>
+            <li><strong>翻译内容</strong>: 逐字打字机效果，像OpenAI回复一样逐渐出现</li>
+            <li><strong>打字速度</strong>: 每个字符30毫秒，速度较快</li>
+            <li><strong>光标效果</strong>: 闪烁的光标跟随文字移动</li>
+            <li><strong>间距</strong>: 翻译内容与原文之间有8px的间距</li>
+            <li><strong>加载状态</strong>: 圆形旋转动画 + "翻译中..."文字</li>
+            <li><strong>错误状态</strong>: 淡红色背景，直接提示"翻译失败"</li>
+        </ul>
+    </div>
+
+    <script>
+        function showTranslation() {
+            clearAll();
+            const originalElement = document.querySelector('.original-text p');
+            const translationElement = document.createElement('div');
+            translationElement.className = 'mark-translation-typing';
+
+            // 创建光标元素
+            const cursorElement = document.createElement('span');
+            cursorElement.className = 'typing-cursor';
+
+            // 初始为空内容
+            translationElement.textContent = '';
+            translationElement.appendChild(cursorElement);
+
+            originalElement.parentNode.insertBefore(translationElement, originalElement.nextSibling);
+
+            // 开始逐字显示
+            const text = '这是一个示例段落的翻译内容。它包含用于测试翻译动画效果的有意义内容。';
+            typeText(translationElement, text, cursorElement);
+        }
+
+        function typeText(element, text, cursorElement) {
+            let index = 0;
+            const speed = 30; // 每个字符的显示间隔（毫秒）
+
+            const typeNextChar = () => {
+                if (index < text.length) {
+                    // 移除光标
+                    cursorElement.remove();
+
+                    // 添加下一个字符
+                    element.textContent = text.substring(0, index + 1);
+
+                    // 重新添加光标
+                    element.appendChild(cursorElement);
+
+                    index++;
+                    setTimeout(typeNextChar, speed);
+                } else {
+                    // 打字完成，移除光标并设置最终类名
+                    cursorElement.remove();
+                    element.className = 'mark-translation';
+                }
+            };
+
+            // 开始打字
+            setTimeout(typeNextChar, 100);
+        }
+
+        function showLoading() {
+            clearAll();
+            const originalElement = document.querySelector('.original-text p');
+            const loadingElement = document.createElement('div');
+            loadingElement.className = 'mark-translation-loading';
+
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+
+            const loadingText = document.createElement('span');
+            loadingText.textContent = '翻译中...';
+
+            loadingElement.appendChild(spinner);
+            loadingElement.appendChild(loadingText);
+            originalElement.parentNode.insertBefore(loadingElement, originalElement.nextSibling);
+        }
+
+        function showError() {
+            clearAll();
+            const originalElement = document.querySelector('.original-text p');
+            const errorElement = document.createElement('div');
+            errorElement.className = 'mark-translation-error';
+            errorElement.textContent = '翻译失败';
+            originalElement.parentNode.insertBefore(errorElement, originalElement.nextSibling);
+        }
+
+        function clearAll() {
+            const elements = document.querySelectorAll('.mark-translation, .mark-translation-loading, .mark-translation-error');
+            elements.forEach(element => element.remove());
+        }
+    </script>
+</body>
+</html>

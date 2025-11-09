@@ -11,7 +11,8 @@ export class StorageManager {
         autoTranslate: false,
         parallelTasks: 6,
         activeAIConfigId: null
-      }
+      },
+      language: 'zh'
     };
   }
 
@@ -116,6 +117,19 @@ export class StorageManager {
 
   static async clearConfig(): Promise<void> {
     await chrome.storage.sync.remove(['appConfig']);
+  }
+
+  static async getLanguage(): Promise<'zh' | 'en'> {
+    const appConfig = await this.getAppConfig();
+    return appConfig.language || 'zh';
+  }
+
+  static async setLanguage(language: 'zh' | 'en'): Promise<void> {
+    const appConfig = await this.getAppConfig();
+    await this.setAppConfig({
+      ...appConfig,
+      language
+    });
   }
 
   static async exportConfig(): Promise<string> {

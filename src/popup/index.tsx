@@ -10,8 +10,10 @@ import {
   clearTranslationsAtom,
   aiConfigsAtom,
   activeAIConfigAtom,
-  setActiveAIConfigAtom
+  setActiveAIConfigAtom,
+  languageAtom
 } from '../store';
+import { useI18n } from '../utils/i18n';
 
 const Popup: React.FC = () => {
   const [config, setConfig] = useAtom(translationConfigAtom);
@@ -19,10 +21,12 @@ const Popup: React.FC = () => {
   const errorMessage = useAtomValue(errorMessageAtom);
   const aiConfigs = useAtomValue(aiConfigsAtom);
   const activeAIConfig = useAtomValue(activeAIConfigAtom);
+  const language = useAtomValue(languageAtom);
   const loadConfigs = useSetAtom(loadConfigsAtom);
   const translatePage = useSetAtom(translatePageAtom);
   const clearTranslations = useSetAtom(clearTranslationsAtom);
   const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
+  const { t } = useI18n();
 
   useEffect(() => {
     loadConfigs();
@@ -31,18 +35,18 @@ const Popup: React.FC = () => {
   // 获取状态显示
   const getStatusInfo = () => {
     if (!activeAIConfig) {
-      return { message: '⚠️ No active AI configuration', type: 'error' as const };
+      return { message: t('popup.noActiveConfiguration'), type: 'error' as const };
     }
 
     switch (translationStatus) {
       case 'translating':
-        return { message: 'Translating...', type: 'info' as const };
+        return { message: t('popup.translating'), type: 'info' as const };
       case 'success':
-        return { message: '✅ Translation completed!', type: 'success' as const };
+        return { message: t('popup.translationCompleted'), type: 'success' as const };
       case 'error':
-        return { message: errorMessage || '❌ Translation failed', type: 'error' as const };
+        return { message: errorMessage || t('popup.translationFailed'), type: 'error' as const };
       default:
-        return { message: 'Ready to translate', type: 'info' as const };
+        return { message: t('popup.readyToTranslate'), type: 'info' as const };
     }
   };
 
@@ -85,7 +89,7 @@ const Popup: React.FC = () => {
   return (
     <div style={{ width: '300px', padding: '16px' }}>
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Mark Translation</h1>
+        <h1 style={{ margin: 0, fontSize: '18px', color: '#333' }}>{t('popup.title')}</h1>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -93,7 +97,7 @@ const Popup: React.FC = () => {
         {aiConfigs.length > 0 ? (
           <div>
             <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
-              AI Configuration
+              {t('popup.aiConfiguration')}
             </label>
             <select
               value={activeAIConfig?.id || ''}
@@ -116,7 +120,7 @@ const Popup: React.FC = () => {
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '12px', color: '#856404', marginBottom: '8px' }}>
-              No AI configurations found
+              {t('popup.noAiConfigurations')}
             </div>
             <button
               onClick={openSettings}
@@ -130,7 +134,7 @@ const Popup: React.FC = () => {
                 cursor: 'pointer'
               }}
             >
-              Add Configuration
+              {t('popup.addConfiguration')}
             </button>
           </div>
         )}
@@ -142,16 +146,16 @@ const Popup: React.FC = () => {
             onChange={handleSourceLangChange}
             style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
           >
-            <option value="en">English →</option>
-            <option value="zh">中文 →</option>
+            <option value="en">{t('settings.english')} →</option>
+            <option value="zh">{t('settings.chinese')} →</option>
           </select>
           <select
             value={config.targetLang}
             onChange={handleTargetLangChange}
             style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
           >
-            <option value="zh">中文</option>
-            <option value="en">English</option>
+            <option value="zh">{t('settings.chinese')}</option>
+            <option value="en">{t('settings.english')}</option>
           </select>
         </div>
 
@@ -171,7 +175,7 @@ const Popup: React.FC = () => {
               opacity: translationStatus === 'translating' || !activeAIConfig ? 0.6 : 1
             }}
           >
-            {translationStatus === 'translating' ? 'Translating...' : 'Translate Page'}
+            {translationStatus === 'translating' ? t('popup.translating') : t('popup.translatePage')}
           </button>
           <button
             onClick={clearTranslations}
@@ -186,7 +190,7 @@ const Popup: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Clear
+            {t('popup.clear')}
           </button>
         </div>
 
@@ -202,7 +206,7 @@ const Popup: React.FC = () => {
             cursor: 'pointer'
           }}
         >
-          Settings
+          {t('popup.settings')}
         </button>
       </div>
 

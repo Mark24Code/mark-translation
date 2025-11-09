@@ -12,7 +12,8 @@ export const appConfigAtom = atomWithStorage<AppConfig>('appConfig', {
     autoTranslate: false,
     parallelTasks: 6,
     activeAIConfigId: null
-  }
+  },
+  language: 'zh'
 });
 
 // AI 配置列表
@@ -32,6 +33,11 @@ export const activeAIConfigAtom = atom(
 // 翻译配置
 export const translationConfigAtom = atom(
   (get) => get(appConfigAtom).translationConfig
+);
+
+// 语言配置
+export const languageAtom = atom(
+  (get) => get(appConfigAtom).language
 );
 
 // 翻译状态
@@ -61,6 +67,10 @@ export const loadConfigsAtom = atom(
     try {
       const appConfig = await StorageManager.getAppConfig();
       set(appConfigAtom, appConfig);
+
+      // 初始化 i18n 管理器
+      const { I18nManager } = await import('../utils/i18n');
+      I18nManager.setLanguage(appConfig.language || 'zh');
     } catch (error) {
       console.error('Failed to load configs:', error);
       set(errorMessageAtom, 'Failed to load settings');
@@ -165,6 +175,26 @@ export const updateTranslationConfigAtom = atom(
   }
 );
 
+// 更新语言的导出器
+export const updateLanguageAtom = atom(
+  null,
+  async (get, set, language: 'zh' | 'en') => {
+    try {
+      await StorageManager.setLanguage(language);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+
+      // 更新 i18n 管理器
+      const { I18nManager } = await import('../utils/i18n');
+      I18nManager.setLanguage(language);
+    } catch (error) {
+      console.error('Failed to update language:', error);
+      set(errorMessageAtom, 'Failed to update language');
+      throw error;
+    }
+  }
+);
+
 // 重置配置的导出器
 export const resetConfigsAtom = atom(
   null,
@@ -179,10 +209,15 @@ export const resetConfigsAtom = atom(
           autoTranslate: false,
           parallelTasks: 6,
           activeAIConfigId: null
-        }
+        },
+        language: 'zh'
       };
       set(appConfigAtom, defaultConfig);
       set(errorMessageAtom, null);
+
+      // 重置 i18n 管理器
+      const { I18nManager } = await import('../utils/i18n');
+      I18nManager.setLanguage('zh');
     } catch (error) {
       console.error('Failed to reset configs:', error);
       set(errorMessageAtom, 'Failed to reset settings');

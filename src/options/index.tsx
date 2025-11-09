@@ -3,10 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { AIConfig, TranslationConfig } from '../shared/types';
 import { TranslationAPI } from '../shared/api';
+import { useI18n } from '../utils/i18n';
 import {
   aiConfigsAtom,
   activeAIConfigAtom,
   translationConfigAtom,
+  languageAtom,
   errorMessageAtom,
   loadConfigsAtom,
   addAIConfigAtom,
@@ -14,6 +16,7 @@ import {
   deleteAIConfigAtom,
   setActiveAIConfigAtom,
   updateTranslationConfigAtom,
+  updateLanguageAtom,
   resetConfigsAtom,
   exportConfigsAtom,
   importConfigsAtom
@@ -23,6 +26,7 @@ const Options: React.FC = () => {
   const aiConfigs = useAtomValue(aiConfigsAtom);
   const activeAIConfig = useAtomValue(activeAIConfigAtom);
   const translationConfig = useAtomValue(translationConfigAtom);
+  const language = useAtomValue(languageAtom);
   const errorMessage = useAtomValue(errorMessageAtom);
   const loadConfigs = useSetAtom(loadConfigsAtom);
   const addAIConfig = useSetAtom(addAIConfigAtom);
@@ -30,11 +34,14 @@ const Options: React.FC = () => {
   const deleteAIConfig = useSetAtom(deleteAIConfigAtom);
   const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
   const updateTranslationConfig = useSetAtom(updateTranslationConfigAtom);
+  const updateLanguage = useSetAtom(updateLanguageAtom);
   const resetConfigs = useSetAtom(resetConfigsAtom);
   const exportConfigs = useSetAtom(exportConfigsAtom);
   const importConfigs = useSetAtom(importConfigsAtom);
 
-  const [status, setStatus] = useState<string>('Configure your AI provider settings to enable translation');
+  const { t, getSupportedLanguages } = useI18n();
+
+  const [status, setStatus] = useState<string>(t('settings.noConfigurations'));
   const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -62,17 +69,17 @@ const Options: React.FC = () => {
   // 提供商配置
   const providerConfigs = {
     deepseek: {
-      name: 'DeepSeek',
+      name: t('providers.deepseek.name'),
       apiUrl: 'https://api.deepseek.com',
       models: [
         { value: 'deepseek-chat', label: 'DeepSeek Chat' },
         { value: 'deepseek-coder', label: 'DeepSeek Coder' }
       ],
       defaultModel: 'deepseek-chat',
-      helpText: 'Free tier available, excellent Chinese support'
+      helpText: t('providers.deepseek.helpText')
     },
     openai: {
-      name: 'OpenAI',
+      name: t('providers.openai.name'),
       apiUrl: 'https://api.openai.com',
       models: [
         { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
@@ -80,10 +87,10 @@ const Options: React.FC = () => {
         { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' }
       ],
       defaultModel: 'gpt-3.5-turbo',
-      helpText: 'High quality translations, paid service'
+      helpText: t('providers.openai.helpText')
     },
     claude: {
-      name: 'Claude',
+      name: t('providers.claude.name'),
       apiUrl: 'https://api.anthropic.com',
       models: [
         { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
@@ -91,7 +98,7 @@ const Options: React.FC = () => {
         { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' }
       ],
       defaultModel: 'claude-3-sonnet-20240229',
-      helpText: 'Excellent for complex translations'
+      helpText: t('providers.claude.helpText')
     }
   };
 
@@ -133,11 +140,11 @@ const Options: React.FC = () => {
   const handleAddConfig = async () => {
     try {
       setIsSaving(true);
-      setStatus('Adding configuration...');
+      setStatus(t('common.loading'));
       setStatusType('info');
 
       if (!newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey) {
-        throw new Error('Please fill in all fields');
+        throw new Error(t('errors.fillAllFields'));
       }
 
       await addAIConfig(newConfig);
@@ -149,11 +156,11 @@ const Options: React.FC = () => {
         provider: 'deepseek',
         isActive: false
       });
-      setStatus('✅ Configuration added successfully!');
+      setStatus(`✅ ${t('settings.configurationAdded')}`);
       setStatusType('success');
     } catch (error) {
       console.error('Failed to add config:', error);
-      setStatus(`❌ Failed to add configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`❌ ${t('errors.failedToAddConfiguration')}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setStatusType('error');
     } finally {
       setIsSaving(false);
@@ -165,11 +172,11 @@ const Options: React.FC = () => {
 
     try {
       setIsSaving(true);
-      setStatus('Updating configuration...');
+      setStatus(t('common.loading'));
       setStatusType('info');
 
       if (!editingConfig.name || !editingConfig.apiUrl || !editingConfig.model || !editingConfig.apiKey) {
-        throw new Error('Please fill in all fields');
+        throw new Error(t('errors.fillAllFields'));
       }
 
       await updateAIConfig({
@@ -177,11 +184,11 @@ const Options: React.FC = () => {
         updates: editingConfig
       });
       setEditingConfig(null);
-      setStatus('✅ Configuration updated successfully!');
+      setStatus(`✅ ${t('settings.configurationUpdated')}`);
       setStatusType('success');
     } catch (error) {
       console.error('Failed to update config:', error);
-      setStatus(`❌ Failed to update configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`❌ ${t('errors.failedToUpdateConfiguration')}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setStatusType('error');
     } finally {
       setIsSaving(false);
@@ -189,14 +196,14 @@ const Options: React.FC = () => {
   };
 
   const handleDeleteConfig = async (configId: string) => {
-    if (confirm('Are you sure you want to delete this configuration?')) {
+    if (confirm(t('common.confirmDelete'))) {
       try {
         await deleteAIConfig(configId);
-        setStatus('✅ Configuration deleted successfully!');
+        setStatus(`✅ ${t('settings.configurationDeleted')}`);
         setStatusType('success');
       } catch (error) {
         console.error('Failed to delete config:', error);
-        setStatus(`❌ Failed to delete configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setStatus(`❌ ${t('errors.failedToDeleteConfiguration')}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         setStatusType('error');
       }
     }
@@ -205,11 +212,11 @@ const Options: React.FC = () => {
   const handleSetActiveConfig = async (configId: string) => {
     try {
       await setActiveAIConfig(configId);
-      setStatus('✅ Active configuration updated!');
+      setStatus(`✅ ${t('settings.activeConfigurationUpdated')}`);
       setStatusType('success');
     } catch (error) {
       console.error('Failed to set active config:', error);
-      setStatus(`❌ Failed to set active configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setStatus(`❌ ${t('errors.failedToSetActiveConfiguration')}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setStatusType('error');
     }
   };
@@ -307,16 +314,16 @@ const Options: React.FC = () => {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ margin: 0, color: '#333' }}>Mark Translation Settings</h1>
+        <h1 style={{ margin: 0, color: '#333' }}>{t('app.title')} {t('settings.title')}</h1>
       </div>
 
       {/* AI Configurations Section */}
       <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>AI Configurations</h2>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>{t('settings.aiConfigurations')}</h2>
 
         {/* Configuration List */}
         <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>Your Configurations</h3>
+          <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>{t('settings.yourConfigurations')}</h3>
 
           {aiConfigs.length === 0 ? (
             <div style={{
@@ -326,7 +333,7 @@ const Options: React.FC = () => {
               textAlign: 'center',
               color: '#666'
             }}>
-              No configurations yet. Add your first configuration below.
+              {t('settings.noConfigurations')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -367,7 +374,7 @@ const Options: React.FC = () => {
                             cursor: 'pointer'
                           }}
                         >
-                          Set Active
+                          {t('settings.setActive')}
                         </button>
                       )}
                       <button
@@ -382,7 +389,7 @@ const Options: React.FC = () => {
                           cursor: 'pointer'
                         }}
                       >
-                        Edit
+                        {t('common.edit')}
                       </button>
                       <button
                         onClick={() => testConnection(config)}
@@ -398,7 +405,7 @@ const Options: React.FC = () => {
                           opacity: isTesting ? 0.6 : 1
                         }}
                       >
-                        {isTesting ? 'Testing...' : 'Test'}
+                        {isTesting ? t('settings.testing') : t('common.test')}
                       </button>
                       <button
                         onClick={() => handleDeleteConfig(config.id)}
@@ -412,7 +419,7 @@ const Options: React.FC = () => {
                           cursor: 'pointer'
                         }}
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </div>
                   </div>
@@ -435,13 +442,13 @@ const Options: React.FC = () => {
           border: '1px solid #ddd'
         }}>
           <h3 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>
-            {editingConfig ? 'Edit Configuration' : 'Add New Configuration'}
+            {editingConfig ? t('settings.editConfiguration') : t('settings.addNewConfiguration')}
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-                Configuration Name
+                {t('settings.configurationName')}
               </label>
               <input
                 type="text"
@@ -458,7 +465,7 @@ const Options: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-                AI Provider
+                {t('settings.aiProvider')}
               </label>
               <select
                 value={editingConfig ? editingConfig.provider : newConfig.provider}
@@ -474,7 +481,7 @@ const Options: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-                API URL
+                {t('settings.apiUrl')}
               </label>
               <input
                 type="url"
@@ -491,7 +498,7 @@ const Options: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-                Model
+                {t('settings.model')}
               </label>
               <select
                 value={editingConfig ? editingConfig.model : newConfig.model}
@@ -513,7 +520,7 @@ const Options: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-                API Key
+                {t('settings.apiKey')}
               </label>
               <input
                 type="password"
@@ -545,7 +552,7 @@ const Options: React.FC = () => {
                       opacity: isSaving ? 0.6 : 1
                     }}
                   >
-                    {isSaving ? 'Updating...' : 'Update Configuration'}
+                    {isSaving ? t('common.loading') : t('common.save')}
                   </button>
                   <button
                     onClick={() => setEditingConfig(null)}
@@ -559,7 +566,7 @@ const Options: React.FC = () => {
                       cursor: 'pointer'
                     }}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </>
               ) : (
@@ -577,7 +584,7 @@ const Options: React.FC = () => {
                     opacity: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 0.6 : 1
                   }}
                 >
-                  {isSaving ? 'Adding...' : 'Add Configuration'}
+                  {isSaving ? t('common.loading') : t('settings.addNewConfiguration')}
                 </button>
               )}
             </div>
@@ -585,14 +592,38 @@ const Options: React.FC = () => {
         </div>
       </div>
 
-      {/* Translation Settings Section */}
+      {/* Language Settings Section */}
       <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>Translation Settings</h2>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>{t('settings.languageSettings')}</h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-              Parallel Translation Tasks
+              {t('settings.interfaceLanguage')}
+            </label>
+            <select
+              value={language}
+              onChange={(e) => updateLanguage(e.target.value as 'zh' | 'en')}
+              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            >
+              <option value="zh">中文 (Chinese)</option>
+              <option value="en">English</option>
+            </select>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              {t('settings.languageDescription')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Translation Settings Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>{t('settings.translationSettings')}</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
+              {t('settings.parallelTasks')}
             </label>
             <input
               type="number"
@@ -603,13 +634,13 @@ const Options: React.FC = () => {
               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
             />
             <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-              Number of translation requests to process simultaneously (1-20). Higher values may improve speed but consume more API credits.
+              {t('settings.parallelTasksDescription')}
             </div>
           </div>
 
           <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-              Auto-Translate
+              {t('settings.autoTranslate')}
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
@@ -617,13 +648,13 @@ const Options: React.FC = () => {
                 checked={translationConfig.autoTranslate}
                 onChange={(e) => handleTranslationConfigChange('autoTranslate', e.target.checked)}
               />
-              <span style={{ fontSize: '14px' }}>Automatically translate pages when they load</span>
+              <span style={{ fontSize: '14px' }}>{t('settings.autoTranslateDescription')}</span>
             </label>
           </div>
 
           <div>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: '#333' }}>
-              Default Language Direction
+              {t('settings.defaultLanguageDirection')}
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <select
@@ -631,8 +662,8 @@ const Options: React.FC = () => {
                 onChange={(e) => handleTranslationConfigChange('sourceLang', e.target.value as 'zh' | 'en')}
                 style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
               >
-                <option value="en">English</option>
-                <option value="zh">中文</option>
+                <option value="en">{t('settings.english')}</option>
+                <option value="zh">{t('settings.chinese')}</option>
               </select>
               <span style={{ color: '#666' }}>→</span>
               <select
@@ -640,8 +671,8 @@ const Options: React.FC = () => {
                 onChange={(e) => handleTranslationConfigChange('targetLang', e.target.value as 'zh' | 'en')}
                 style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
               >
-                <option value="zh">中文</option>
-                <option value="en">English</option>
+                <option value="zh">{t('settings.chinese')}</option>
+                <option value="en">{t('settings.english')}</option>
               </select>
             </div>
           </div>
@@ -650,7 +681,7 @@ const Options: React.FC = () => {
 
       {/* Import/Export Section */}
       <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>Backup & Restore</h2>
+        <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '24px' }}>{t('settings.backupRestore')}</h2>
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
@@ -665,7 +696,7 @@ const Options: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Export Configuration
+            {t('settings.exportConfiguration')}
           </button>
 
           <label style={{
@@ -678,7 +709,7 @@ const Options: React.FC = () => {
             cursor: 'pointer',
             display: 'inline-block'
           }}>
-            Import Configuration
+            {t('settings.importConfiguration')}
             <input
               type="file"
               accept=".json"
@@ -699,7 +730,7 @@ const Options: React.FC = () => {
               cursor: 'pointer'
             }}
           >
-            Reset All Settings
+            {t('settings.resetAllSettings')}
           </button>
         </div>
       </div>
@@ -725,23 +756,23 @@ const Options: React.FC = () => {
 
       {/* Help Section */}
       <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '4px', marginTop: '20px' }}>
-        <h3 style={{ marginTop: '0', color: '#333' }}>Getting Started</h3>
+        <h3 style={{ marginTop: '0', color: '#333' }}>{t('settings.gettingStarted')}</h3>
         <div style={{ lineHeight: '1.6' }}>
-          <p><strong>1. Add AI Configurations:</strong></p>
+          <p><strong>1. {t('settings.addAiConfigurations')}:</strong></p>
           <ul style={{ margin: '0 0 15px 20px', padding: '0' }}>
-            <li>Create multiple configurations for different AI providers</li>
-            <li>Set one configuration as active for translations</li>
-            <li>Test connections before using</li>
+            <li>{t('settings.createMultipleConfigurations')}</li>
+            <li>{t('settings.setOneConfigurationActive')}</li>
+            <li>{t('settings.testConnectionsBeforeUsing')}</li>
           </ul>
 
-          <p><strong>2. Get your API key:</strong></p>
+          <p><strong>2. {t('settings.getYourApiKey')}:</strong></p>
           <ul style={{ margin: '0 0 15px 20px', padding: '0' }}>
-            <li>DeepSeek: <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a></li>
-            <li>OpenAI: <a href="https://platform.openai.com/" target="_blank" rel="noopener">platform.openai.com</a></li>
-            <li>Claude: <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a></li>
+            <li>{t('settings.deepseek')}: <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a></li>
+            <li>{t('settings.openai')}: <a href="https://platform.openai.com/" target="_blank" rel="noopener">platform.openai.com</a></li>
+            <li>{t('settings.claude')}: <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a></li>
           </ul>
 
-          <p><strong>3. Backup your settings</strong> using the export feature</p>
+          <p><strong>3. {t('settings.backupYourSettings')}</strong> {t('settings.backupYourSettings')}</p>
         </div>
       </div>
     </div>

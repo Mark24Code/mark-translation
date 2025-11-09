@@ -21,6 +21,7 @@ export interface TranslationConfig {
 export interface AppConfig {
   aiConfigs: AIConfig[];
   translationConfig: TranslationConfig;
+  language: 'zh' | 'en';
 }
 
 export interface TranslationResult {

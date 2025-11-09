@@ -2,12 +2,48 @@
 // import { createRoot } from 'react-dom/client';
 import { TranslationConfig } from '../shared/types';
 
+// 获取语言设置的辅助函数
+async function getLanguage(): Promise<'zh' | 'en'> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get('appConfig', (result) => {
+      const appConfig = result.appConfig;
+      const language = appConfig?.language || 'zh';
+      resolve(language);
+    });
+  });
+}
+
 class TranslationManager {
   private config: TranslationConfig;
   private isTranslating = false;
+  private language: 'zh' | 'en' = 'zh';
 
   constructor(config: TranslationConfig) {
     this.config = config;
+    this.initializeLanguage();
+  }
+
+  // 初始化语言设置
+  private async initializeLanguage() {
+    this.language = await getLanguage();
+  }
+
+  // 获取翻译消息
+  private t(key: string): string {
+    const messages = {
+      zh: {
+        translating: '翻译中...',
+        translationFailed: '翻译失败',
+        loading: '翻译中...'
+      },
+      en: {
+        translating: 'Translating...',
+        translationFailed: 'Translation failed',
+        loading: 'Translating...'
+      }
+    };
+
+    return messages[this.language][key as keyof typeof messages['zh']] || key;
   }
 
   // 检测页面语言
@@ -135,7 +171,7 @@ class TranslationManager {
     `;
 
     const loadingText = document.createElement('span');
-    loadingText.textContent = '翻译中...';
+    loadingText.textContent = this.t('loading');
 
     loadingElement.appendChild(spinner);
     loadingElement.appendChild(loadingText);
@@ -198,7 +234,7 @@ class TranslationManager {
             color: #721c24;
             font-style: italic;
           `;
-          errorElement.textContent = '翻译失败';
+          errorElement.textContent = this.t('translationFailed');
           task.targetElement.parentNode?.insertBefore(errorElement, task.targetElement.nextSibling);
         }
       });

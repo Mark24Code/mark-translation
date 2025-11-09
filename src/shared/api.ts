@@ -1,4 +1,4 @@
-import { AIConfig, TranslationResult } from './types';
+import { AIConfig, TranslationResult, TranslationStyle } from './types';
 
 export class TranslationAPI {
   private config: AIConfig;
@@ -7,19 +7,19 @@ export class TranslationAPI {
     this.config = config;
   }
 
-  async translate(text: string, sourceLang: string, targetLang: string): Promise<TranslationResult> {
+  async translate(text: string, sourceLang: string, targetLang: string, translationStyle?: TranslationStyle | null): Promise<TranslationResult> {
     try {
       let response;
 
       switch (this.config.provider) {
         case 'openai':
-          response = await this.callOpenAI(text, sourceLang, targetLang);
+          response = await this.callOpenAI(text, sourceLang, targetLang, translationStyle);
           break;
         case 'deepseek':
-          response = await this.callDeepSeek(text, sourceLang, targetLang);
+          response = await this.callDeepSeek(text, sourceLang, targetLang, translationStyle);
           break;
         case 'claude':
-          response = await this.callClaude(text, sourceLang, targetLang);
+          response = await this.callClaude(text, sourceLang, targetLang, translationStyle);
           break;
         default:
           throw new Error('Unsupported AI provider');
@@ -40,7 +40,10 @@ export class TranslationAPI {
     }
   }
 
-  private async callOpenAI(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  private async callOpenAI(text: string, sourceLang: string, targetLang: string, translationStyle?: TranslationStyle | null): Promise<string> {
+    // 使用翻译风格的提示词，如果没有则使用默认提示词
+    const systemPrompt = translationStyle?.prompt || `You are a professional translator. Translate the following ${sourceLang} text to ${targetLang}. Only return the translation, no explanations.`;
+
     const response = await fetch(`${this.config.apiUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
@@ -52,7 +55,7 @@ export class TranslationAPI {
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the following ${sourceLang} text to ${targetLang}. Only return the translation, no explanations.`
+            content: systemPrompt
           },
           {
             role: 'user',
@@ -72,7 +75,10 @@ export class TranslationAPI {
     return data.choices[0].message.content.trim();
   }
 
-  private async callDeepSeek(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  private async callDeepSeek(text: string, sourceLang: string, targetLang: string, translationStyle?: TranslationStyle | null): Promise<string> {
+    // 使用翻译风格的提示词，如果没有则使用默认提示词
+    const systemPrompt = translationStyle?.prompt || `Translate the following ${sourceLang} text to ${targetLang}. Only return the translation.`;
+
     const response = await fetch(`${this.config.apiUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
@@ -84,7 +90,7 @@ export class TranslationAPI {
         messages: [
           {
             role: 'system',
-            content: `Translate the following ${sourceLang} text to ${targetLang}. Only return the translation.`
+            content: systemPrompt
           },
           {
             role: 'user',
@@ -104,7 +110,12 @@ export class TranslationAPI {
     return data.choices[0].message.content.trim();
   }
 
-  private async callClaude(text: string, sourceLang: string, targetLang: string): Promise<string> {
+  private async callClaude(text: string, sourceLang: string, targetLang: string, translationStyle?: TranslationStyle | null): Promise<string> {
+    // 使用翻译风格的提示词，如果没有则使用默认提示词
+    const userPrompt = translationStyle?.prompt
+      ? `${translationStyle.prompt}\n\nText to translate: ${text}`
+      : `Translate the following ${sourceLang} text to ${targetLang}. Only return the translation: ${text}`;
+
     const response = await fetch(this.config.apiUrl, {
       method: 'POST',
       headers: {
@@ -118,7 +129,7 @@ export class TranslationAPI {
         messages: [
           {
             role: 'user',
-            content: `Translate the following ${sourceLang} text to ${targetLang}. Only return the translation: ${text}`
+            content: userPrompt
           }
         ]
       })

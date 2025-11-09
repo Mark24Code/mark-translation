@@ -11,7 +11,10 @@ import {
   aiConfigsAtom,
   activeAIConfigAtom,
   setActiveAIConfigAtom,
-  languageAtom
+  languageAtom,
+  translationStylesAtom,
+  activeTranslationStyleAtom,
+  setActiveTranslationStyleAtom
 } from '../store';
 import { useI18n } from '../utils/i18n';
 
@@ -22,10 +25,13 @@ const Popup: React.FC = () => {
   const aiConfigs = useAtomValue(aiConfigsAtom);
   const activeAIConfig = useAtomValue(activeAIConfigAtom);
   const language = useAtomValue(languageAtom);
+  const translationStyles = useAtomValue(translationStylesAtom);
+  const activeTranslationStyle = useAtomValue(activeTranslationStyleAtom);
   const loadConfigs = useSetAtom(loadConfigsAtom);
   const translatePage = useSetAtom(translatePageAtom);
   const clearTranslations = useSetAtom(clearTranslationsAtom);
   const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
+  const setActiveTranslationStyle = useSetAtom(setActiveTranslationStyleAtom);
   const { t } = useI18n();
 
   const [isScrollTranslation, setIsScrollTranslation] = useState(false);
@@ -114,6 +120,11 @@ const Popup: React.FC = () => {
     }
   };
 
+  const handleTranslationStyleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const styleId = e.target.value || null;
+    await setActiveTranslationStyle(styleId);
+  };
+
   const openSettings = () => {
     try {
       console.log('Opening options page...');
@@ -133,7 +144,7 @@ const Popup: React.FC = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* AI Configuration Selection */}
-        {aiConfigs.length > 0 ? (
+        {(aiConfigs || []).length > 0 ? (
           <div>
             <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
               {t('popup.aiConfiguration')}
@@ -143,7 +154,7 @@ const Popup: React.FC = () => {
               onChange={handleAIConfigChange}
               style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
             >
-              {aiConfigs.map(config => (
+              {(aiConfigs || []).map(config => (
                 <option key={config.id} value={config.id}>
                   {config.name} {config.isActive ? '✓' : ''}
                 </option>
@@ -195,6 +206,25 @@ const Popup: React.FC = () => {
           >
             <option value="zh">{t('settings.chinese')}</option>
             <option value="en">{t('settings.english')}</option>
+          </select>
+        </div>
+
+        {/* Translation Style Selection */}
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
+            翻译风格
+          </label>
+          <select
+            value={activeTranslationStyle?.id || ''}
+            onChange={handleTranslationStyleChange}
+            style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+          >
+            <option value="">默认风格</option>
+            {(translationStyles || []).map(style => (
+              <option key={style.id} value={style.id}>
+                {style.name} {style.isBuiltIn ? '(内置)' : ''}
+              </option>
+            ))}
           </select>
         </div>
 

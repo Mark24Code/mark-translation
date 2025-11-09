@@ -28,11 +28,14 @@ async function handleTranslation(data: any, sendResponse: (response: any) => voi
       return;
     }
 
+    // 获取激活的翻译风格
+    const translationStyle = await StorageManager.getActiveTranslationStyle();
+
     // 创建翻译 API 实例
     const translationAPI = new TranslationAPI(aiConfig);
 
     // 执行翻译
-    const result = await translationAPI.translate(text, sourceLang, targetLang);
+    const result = await translationAPI.translate(text, sourceLang, targetLang, translationStyle);
 
     sendResponse(result);
   } catch (error) {

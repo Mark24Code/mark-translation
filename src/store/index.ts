@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { AIConfig, TranslationConfig, AppConfig } from '../shared/types';
+import { AIConfig, TranslationConfig, AppConfig, TranslationStyle } from '../shared/types';
 import { StorageManager } from '../utils/storage';
 
 // 应用配置状态
@@ -11,8 +11,10 @@ export const appConfigAtom = atomWithStorage<AppConfig>('appConfig', {
     targetLang: 'zh',
     autoTranslate: false,
     parallelTasks: 6,
-    activeAIConfigId: null
+    activeAIConfigId: null,
+    activeTranslationStyleId: null
   },
+  translationStyles: [],
   language: 'zh'
 });
 
@@ -38,6 +40,22 @@ export const translationConfigAtom = atom(
 // 语言配置
 export const languageAtom = atom(
   (get) => get(appConfigAtom).language
+);
+
+// 翻译风格列表
+export const translationStylesAtom = atom(
+  (get) => get(appConfigAtom).translationStyles
+);
+
+// 激活的翻译风格
+export const activeTranslationStyleAtom = atom(
+  (get) => {
+    const appConfig = get(appConfigAtom);
+    const activeStyleId = appConfig.translationConfig.activeTranslationStyleId;
+    if (!activeStyleId) return null;
+
+    return appConfig.translationStyles.find(style => style.id === activeStyleId) || null;
+  }
 );
 
 // 翻译状态
@@ -152,6 +170,71 @@ export const setActiveAIConfigAtom = atom(
     } catch (error) {
       console.error('Failed to set active AI config:', error);
       set(errorMessageAtom, 'Failed to set active configuration');
+      throw error;
+    }
+  }
+);
+
+// 设置激活翻译风格的导出器
+export const setActiveTranslationStyleAtom = atom(
+  null,
+  async (get, set, styleId: string | null) => {
+    try {
+      await StorageManager.setActiveTranslationStyle(styleId);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to set active translation style:', error);
+      set(errorMessageAtom, 'Failed to set active translation style');
+      throw error;
+    }
+  }
+);
+
+// 添加翻译风格的导出器
+export const addTranslationStyleAtom = atom(
+  null,
+  async (get, set, style: Omit<TranslationStyle, 'id' | 'createdAt' | 'updatedAt' | 'isBuiltIn'>) => {
+    try {
+      const styleId = await StorageManager.addTranslationStyle(style);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+      return styleId;
+    } catch (error) {
+      console.error('Failed to add translation style:', error);
+      set(errorMessageAtom, 'Failed to add translation style');
+      throw error;
+    }
+  }
+);
+
+// 更新翻译风格的导出器
+export const updateTranslationStyleAtom = atom(
+  null,
+  async (get, set, { styleId, updates }: { styleId: string; updates: Partial<TranslationStyle> }) => {
+    try {
+      await StorageManager.updateTranslationStyle(styleId, updates);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to update translation style:', error);
+      set(errorMessageAtom, 'Failed to update translation style');
+      throw error;
+    }
+  }
+);
+
+// 删除翻译风格的导出器
+export const deleteTranslationStyleAtom = atom(
+  null,
+  async (get, set, styleId: string) => {
+    try {
+      await StorageManager.deleteTranslationStyle(styleId);
+      const appConfig = await StorageManager.getAppConfig();
+      set(appConfigAtom, appConfig);
+    } catch (error) {
+      console.error('Failed to delete translation style:', error);
+      set(errorMessageAtom, 'Failed to delete translation style');
       throw error;
     }
   }

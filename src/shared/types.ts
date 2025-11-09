@@ -10,17 +10,29 @@ export interface AIConfig {
   updatedAt: number;
 }
 
+export interface TranslationStyle {
+  id: string;
+  name: string;
+  description: string;
+  prompt: string;
+  isBuiltIn: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface TranslationConfig {
   sourceLang: 'zh' | 'en';
   targetLang: 'zh' | 'en';
   autoTranslate: boolean;
   parallelTasks: number;
   activeAIConfigId: string | null;
+  activeTranslationStyleId: string | null;
 }
 
 export interface AppConfig {
   aiConfigs: AIConfig[];
   translationConfig: TranslationConfig;
+  translationStyles: TranslationStyle[];
   language: 'zh' | 'en';
 }
 

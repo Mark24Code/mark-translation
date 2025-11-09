@@ -67,7 +67,23 @@
     "backupYourSettings": "使用导出功能备份您的设置",
     "languageSettings": "语言设置",
     "interfaceLanguage": "界面语言",
-    "languageDescription": "选择您偏好的扩展界面语言"
+    "languageDescription": "选择您偏好的扩展界面语言",
+    "translationStyles": "翻译风格",
+    "activeTranslationStyle": "激活的翻译风格",
+    "noTranslationStyle": "无翻译风格",
+    "translationStyleDescription": "选择翻译时使用的风格，不同风格适用于不同类型的文本",
+    "yourTranslationStyles": "您的翻译风格",
+    "noTranslationStyles": "暂无翻译风格",
+    "editTranslationStyle": "编辑翻译风格",
+    "addNewTranslationStyle": "添加新翻译风格",
+    "styleName": "风格名称",
+    "styleDescription": "风格描述",
+    "stylePrompt": "风格提示词",
+    "stylePromptDescription": "定义翻译风格的系统提示词，将影响翻译的语气和风格",
+    "translationStyleAdded": "翻译风格已添加",
+    "translationStyleUpdated": "翻译风格已更新",
+    "translationStyleDeleted": "翻译风格已删除",
+    "activeTranslationStyleUpdated": "激活的翻译风格已更新"
   },
   "popup": {
     "title": "Mark 翻译",
@@ -111,6 +127,10 @@
     "pleaseConfigureAiSettings": "请先配置 AI 设置",
     "noActiveTabFound": "未找到活动标签页",
     "pleaseRefreshPage": "请刷新页面后重试",
-    "translationFailedCheckSettings": "翻译失败，请检查设置并刷新页面"
+    "translationFailedCheckSettings": "翻译失败，请检查设置并刷新页面",
+    "failedToAddTranslationStyle": "添加翻译风格失败",
+    "failedToUpdateTranslationStyle": "更新翻译风格失败",
+    "failedToDeleteTranslationStyle": "删除翻译风格失败",
+    "failedToSetActiveTranslationStyle": "设置激活翻译风格失败"
   }
 }

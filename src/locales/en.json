@@ -67,7 +67,23 @@
     "backupYourSettings": "Backup your settings using the export feature",
     "languageSettings": "Language Settings",
     "interfaceLanguage": "Interface Language",
-    "languageDescription": "Choose your preferred language for the extension interface"
+    "languageDescription": "Choose your preferred language for the extension interface",
+    "translationStyles": "Translation Styles",
+    "activeTranslationStyle": "Active Translation Style",
+    "noTranslationStyle": "No Translation Style",
+    "translationStyleDescription": "Choose the style to use for translations, different styles are suitable for different types of text",
+    "yourTranslationStyles": "Your Translation Styles",
+    "noTranslationStyles": "No translation styles yet",
+    "editTranslationStyle": "Edit Translation Style",
+    "addNewTranslationStyle": "Add New Translation Style",
+    "styleName": "Style Name",
+    "styleDescription": "Style Description",
+    "stylePrompt": "Style Prompt",
+    "stylePromptDescription": "System prompt that defines the translation style, will affect the tone and style of translations",
+    "translationStyleAdded": "Translation style added",
+    "translationStyleUpdated": "Translation style updated",
+    "translationStyleDeleted": "Translation style deleted",
+    "activeTranslationStyleUpdated": "Active translation style updated"
   },
   "popup": {
     "title": "Mark Translation",
@@ -111,6 +127,10 @@
     "pleaseConfigureAiSettings": "Please configure AI settings first",
     "noActiveTabFound": "No active tab found",
     "pleaseRefreshPage": "Please refresh the page and try again",
-    "translationFailedCheckSettings": "Translation failed. Please check settings and refresh the page"
+    "translationFailedCheckSettings": "Translation failed. Please check settings and refresh the page",
+    "failedToAddTranslationStyle": "Failed to add translation style",
+    "failedToUpdateTranslationStyle": "Failed to update translation style",
+    "failedToDeleteTranslationStyle": "Failed to delete translation style",
+    "failedToSetActiveTranslationStyle": "Failed to set active translation style"
   }
 }

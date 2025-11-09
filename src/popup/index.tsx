@@ -34,7 +34,8 @@ const Popup: React.FC = () => {
   const setActiveTranslationStyle = useSetAtom(setActiveTranslationStyleAtom);
   const { t } = useI18n();
 
-  const [isScrollTranslation, setIsScrollTranslation] = useState(false);
+  // 默认使用滚动翻译模式
+  const [isScrollTranslation] = useState(true);
 
   useEffect(() => {
     loadConfigs();
@@ -88,9 +89,6 @@ const Popup: React.FC = () => {
       case 'error':
         return { message: errorMessage || t('popup.translationFailed'), type: 'error' as const };
       default:
-        if (isScrollTranslation) {
-          return { message: '滚动翻译模式已启用', type: 'info' as const };
-        }
         return { message: t('popup.readyToTranslate'), type: 'info' as const };
     }
   };
@@ -228,19 +226,6 @@ const Popup: React.FC = () => {
           </select>
         </div>
 
-        {/* 滚动翻译模式切换 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="checkbox"
-            id="scrollTranslation"
-            checked={isScrollTranslation}
-            onChange={(e) => setIsScrollTranslation(e.target.checked)}
-            style={{ margin: 0 }}
-          />
-          <label htmlFor="scrollTranslation" style={{ fontSize: '12px', color: '#666', cursor: 'pointer' }}>
-            滚动翻译模式
-          </label>
-        </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
@@ -258,8 +243,7 @@ const Popup: React.FC = () => {
               opacity: translationStatus === 'translating' || !activeAIConfig ? 0.6 : 1
             }}
           >
-            {translationStatus === 'translating' ? t('popup.translating') :
-             isScrollTranslation ? '开始滚动翻译' : t('popup.translatePage')}
+            {translationStatus === 'translating' ? t('popup.translating') : t('popup.translatePage')}
           </button>
           <button
             onClick={handleClearTranslations}

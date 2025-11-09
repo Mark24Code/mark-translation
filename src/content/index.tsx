@@ -434,13 +434,8 @@ async function initialize() {
 
   // 监听来自弹出窗口的消息
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message.type === 'translatePage') {
-      // 使用传统翻译模式
-      const translationManager = new TranslationManager(message.config);
-      translationManager.translatePage();
-      sendResponse({ success: true });
-    } else if (message.type === 'translatePageScroll') {
-      // 使用滚动翻译模式
+    if (message.type === 'translatePage' || message.type === 'translatePageScroll') {
+      // 使用滚动翻译模式（默认模式）
       if (scrollTranslationManager) {
         scrollTranslationManager.stopScrollTranslation();
       }
@@ -575,14 +570,16 @@ class ScrollTranslationManager extends TranslationManager {
   // 获取所有文本元素
   private getAllTextElements(): Element[] {
     const elements: Element[] = [];
+    const seenElements = new Set<Element>();
 
     // 使用匹配引擎查找元素
     const matchingEngine = createMatchingEngine();
     const foundElements = matchingEngine.findElements();
 
-    // 过滤已处理的元素
+    // 过滤已处理的元素和重复元素
     foundElements.forEach(element => {
-      if (!this.processedElements.has(element)) {
+      if (!this.processedElements.has(element) && !seenElements.has(element)) {
+        seenElements.add(element);
         elements.push(element);
       }
     });

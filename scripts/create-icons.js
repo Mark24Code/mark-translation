@@ -16,8 +16,8 @@ function createSVGIcon(size, type = 'idle') {
 
   const status = statusConfig[type];
 
-  // 根据尺寸调整字体大小，确保小图标也能清晰显示
-  const fontSize = Math.max(size * 0.5, 8);
+  // 根据尺寸调整字体大小，增大汉字"译"字体
+  const fontSize = Math.max(size * 0.6, 10);
 
   // 创建完整的SVG内容，确保格式正确且兼容性好
   let svgContent = '<?xml version="1.0" encoding="UTF-8"?>\n';

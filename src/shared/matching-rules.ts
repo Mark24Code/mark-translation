@@ -166,6 +166,32 @@ export const builtInMatchingRules: MatchingRule[] = [
     updatedAt: Date.now()
   },
   {
+    id: 'reddit-content',
+    name: 'Reddit',
+    description: 'Reddit社区的内容选择器',
+    selectors: [
+      '[data-testid="post-title"]',
+      '[data-testid="comment"]',
+      '.Post h1',
+      '.Post p',
+      '.Comment p',
+      '.RichTextJSON-root',
+      '.md p',
+      '[slot="title"]',
+      '[slot="text-body"]',
+      '.text-neutral-content-strong',
+      '.text-14',
+      '.text-16'
+    ],
+    validation: (text: string) => {
+      return text.length >= 5 && text.length <= 1000;
+    },
+    priority: 3, // 较高优先级，仅次于通用文本和Twitter
+    enabled: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
     id: 'modern-apps',
     name: '现代应用',
     description: '现代Web应用的内容选择器',

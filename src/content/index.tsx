@@ -70,11 +70,11 @@ class TranslationManager {
 
   // 调试方法：显示找到的元素信息
   private debugElements(selector: string, elements: NodeListOf<Element>) {
-    console.log(`Selector '${selector}' found ${elements.length} elements:`);
+    // console.log(`Selector '${selector}' found ${elements.length} elements:`);
     elements.forEach((element, index) => {
       const text = this.extractTextContent(element);
       const isValid = this.isValidText(text);
-      console.log(`  [${index}] ${isValid ? '✓' : '✗'} "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+      // console.log(`  [${index}] ${isValid ? '✓' : '✗'} "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
     });
   }
 
@@ -289,7 +289,7 @@ class TranslationManager {
       this.clearTranslations();
 
       const paragraphs = this.getTextParagraphs();
-      console.log(`Found ${paragraphs.length} paragraphs to translate`);
+      // console.log(`Found ${paragraphs.length} paragraphs to translate`);
 
       // 准备翻译任务
       const translationTasks: Array<{ paragraph: string; targetElement: Element; loadingElement: HTMLDivElement }> = [];
@@ -315,7 +315,7 @@ class TranslationManager {
 
       // 使用配置的并行任务数量进行并发翻译
       const parallelLimit = this.config.parallelTasks || 6;
-      console.log(`Using parallel limit: ${parallelLimit}`);
+      // console.log(`Using parallel limit: ${parallelLimit}`);
 
       await this.processTranslationBatch(translationTasks, parallelLimit);
 
@@ -360,18 +360,31 @@ function injectStyles() {
     }
 
     .mark-translation {
-      margin-top: 8px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      padding-left: 8px;
+      border-left: 2px solid #e9ecef;
+      color: #495057;
+      line-height: 1.6;
     }
 
     .mark-translation-typing {
-      margin-top: 8px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      padding-left: 8px;
+      border-left: 2px solid #e9ecef;
+      color: #495057;
+      line-height: 1.6;
     }
 
     .mark-translation-loading {
-      margin-top: 8px;
+      margin-top: 16px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 8px;
+      padding-left: 8px;
+      border-left: 2px solid #e9ecef;
     }
 
     .loading-spinner {
@@ -384,11 +397,57 @@ function injectStyles() {
     }
 
     .mark-translation-error {
-      margin-top: 8px;
-      padding: 4px 8px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      padding: 12px 12px 12px 20px;
       background: rgba(220, 53, 69, 0.1);
-      border-radius: 3px;
+      border-radius: 8px;
       color: #721c24;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-left: 3px solid #dc3545;
+    }
+
+    .error-message {
+      flex: 1;
+    }
+
+    .retry-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .retry-button:hover {
+      background: rgba(220, 53, 69, 0.2);
+    }
+
+    .retry-icon {
+      width: 16px;
+      height: 16px;
+      fill: #721c24;
+      transition: transform 0.3s;
+    }
+
+    .retry-button:hover .retry-icon {
+      transform: rotate(180deg);
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .retry-button.retrying .retry-icon {
+      animation: rotate 1s linear infinite;
     }
   `;
   document.head.appendChild(style);
@@ -428,7 +487,7 @@ async function initialize() {
     return true;
   });
 
-  console.log('Mark Translation content script loaded');
+  // console.log('Mark Translation content script loaded');
 }
 
 // 滚动翻译管理器 - 基于可见区域的任务队列
@@ -463,7 +522,7 @@ class ScrollTranslationManager extends TranslationManager {
     // 初始扫描可见区域
     this.scanVisibleArea();
 
-    console.log('Scroll translation started');
+    // console.log('Scroll translation started');
   }
 
   // 设置滚动事件监听器（带防抖）
@@ -504,7 +563,7 @@ class ScrollTranslationManager extends TranslationManager {
 
     // 如果正在处理队列，可能需要重新安排处理顺序
     if (this.isProcessingQueue && this.translationQueue.length > 0) {
-      console.log('Queue reprioritized during processing');
+      // console.log('Queue reprioritized during processing');
     }
   }
 
@@ -653,7 +712,7 @@ class ScrollTranslationManager extends TranslationManager {
         return;
       }
 
-      console.log(`Processing batch with priorities: ${batch.map(t => t.priority).join(', ')}`);
+      // console.log(`Processing batch with priorities: ${batch.map(t => t.priority).join(', ')}`);
 
       // 为每个任务创建加载状态
       const tasks = batch.map(task => ({
@@ -726,8 +785,79 @@ class ScrollTranslationManager extends TranslationManager {
   private insertErrorState(originalElement: Element, errorMessage: string) {
     const errorElement = document.createElement('div');
     errorElement.className = 'mark-translation-error';
-    errorElement.textContent = errorMessage;
+
+    // 错误消息
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'error-message';
+    messageSpan.textContent = errorMessage;
+
+    // 重试按钮
+    const retryButton = document.createElement('button');
+    retryButton.className = 'retry-button';
+    retryButton.title = '重试翻译';
+
+    // 环绕箭头图标 (SVG)
+    const retryIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    retryIcon.setAttribute('viewBox', '0 0 24 24');
+    retryIcon.setAttribute('class', 'retry-icon');
+    retryIcon.innerHTML = `
+      <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+    `;
+
+    retryButton.appendChild(retryIcon);
+
+    // 重试点击事件
+    retryButton.addEventListener('click', () => {
+      this.handleRetryTranslation(originalElement, errorElement);
+    });
+
+    errorElement.appendChild(messageSpan);
+    errorElement.appendChild(retryButton);
     originalElement.parentNode?.insertBefore(errorElement, originalElement.nextSibling);
+  }
+
+  // 处理重试翻译
+  private async handleRetryTranslation(originalElement: Element, errorElement: HTMLDivElement) {
+    const retryButton = errorElement.querySelector('.retry-button') as HTMLButtonElement;
+    if (!retryButton) return;
+
+    // 禁用按钮并显示重试中状态
+    retryButton.disabled = true;
+    retryButton.classList.add('retrying');
+
+    try {
+      // 移除错误元素
+      errorElement.remove();
+
+      // 插入加载状态
+      const loadingElement = this.insertLoadingState(originalElement);
+
+      // 提取原始文本
+      const text = this.extractTextContent(originalElement);
+
+      if (!text || !this.isValidText(text)) {
+        throw new Error('Invalid text for translation');
+      }
+
+      // 重新翻译
+      const translated = await this.translateText(text);
+
+      // 移除加载状态
+      this.removeLoadingState(loadingElement);
+
+      // 插入翻译结果
+      this.insertTranslation(originalElement, translated);
+
+    } catch (error) {
+      console.error('Retry translation failed:', error);
+
+      // 重新插入错误状态
+      this.insertErrorState(originalElement, this.t('translationFailed'));
+    } finally {
+      // 重置按钮状态
+      retryButton.disabled = false;
+      retryButton.classList.remove('retrying');
+    }
   }
 
   // 停止滚动翻译
@@ -750,7 +880,7 @@ class ScrollTranslationManager extends TranslationManager {
     this.translationQueue = [];
     this.isProcessingQueue = false;
 
-    console.log('Scroll translation stopped');
+    // console.log('Scroll translation stopped');
   }
 
   // 重新扫描页面（用于手动触发）

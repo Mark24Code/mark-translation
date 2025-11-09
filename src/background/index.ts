@@ -1,9 +1,9 @@
-import { Message, AIConfig } from '../shared/types';
+import { Message } from '../shared/types';
 import { TranslationAPI } from '../shared/api';
 import { StorageManager } from '../utils/storage';
 
 // 处理来自内容脚本的消息
-chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
   if (message.type === 'translate') {
     handleTranslation(message.data, sendResponse);
     return true; // 保持消息通道开放

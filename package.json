@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run build:chrome",
     "preview": "vite preview",
-    "build:firefox": "tsc && vite build --mode firefox",
-    "build:chrome": "tsc && vite build --mode chrome"
+    "build:firefox": "vite build --mode firefox && node scripts/post-build.js firefox",
+    "build:chrome": "vite build --mode chrome && node scripts/post-build.js chrome"
   },
   "dependencies": {
     "react": "^18.2.0",

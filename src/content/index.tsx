@@ -1,5 +1,5 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+// import React from 'react';
+// import { createRoot } from 'react-dom/client';
 import { TranslationConfig } from '../shared/types';
 
 class TranslationManager {
@@ -15,7 +15,7 @@ class TranslationManager {
     const htmlLang = document.documentElement.lang?.toLowerCase();
     const textContent = document.body.textContent || '';
 
-    if (htmlLang.includes('zh') || this.isChineseText(textContent)) {
+    if (htmlLang?.includes('zh') || this.isChineseText(textContent)) {
       return 'zh';
     }
     return 'en';
@@ -144,7 +144,7 @@ class TranslationManager {
 // 初始化内容脚本
 async function initialize() {
   // 监听来自弹出窗口的消息
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'translatePage') {
       const translationManager = new TranslationManager(message.config);
       translationManager.translatePage();

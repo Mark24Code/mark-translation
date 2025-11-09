@@ -66,7 +66,7 @@ function createManifest() {
 console.log(`🔄 Generating icons for ${browser}...`)
 const { spawn } = await import('child_process')
 
-const generateIcons = spawn('node', ['scripts/generate-icons.js'], {
+const generateIcons = spawn('node', ['scripts/create-icons.js'], {
   stdio: 'inherit'
 })
 

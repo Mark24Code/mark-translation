@@ -178,41 +178,28 @@ class TranslationManager {
     const translationElement = document.createElement('div');
     translationElement.className = 'mark-translation-typing';
 
-    // 创建光标元素
-    const cursorElement = document.createElement('span');
-    cursorElement.className = 'typing-cursor';
-
     // 初始为空内容
     translationElement.textContent = '';
-    translationElement.appendChild(cursorElement);
 
     originalElement.parentNode?.insertBefore(translationElement, originalElement.nextSibling);
 
     // 开始逐字显示
-    this.typeText(translationElement, translatedText, cursorElement);
+    this.typeText(translationElement, translatedText);
   }
 
   // 逐字显示文本
-  private typeText(element: HTMLDivElement, text: string, cursorElement: HTMLSpanElement) {
+  private typeText(element: HTMLDivElement, text: string) {
     let index = 0;
     const speed = 30; // 每个字符的显示间隔（毫秒）
 
     const typeNextChar = () => {
       if (index < text.length) {
-        // 移除光标
-        cursorElement.remove();
-
         // 添加下一个字符
         element.textContent = text.substring(0, index + 1);
-
-        // 重新添加光标
-        element.appendChild(cursorElement);
-
         index++;
         setTimeout(typeNextChar, speed);
       } else {
-        // 打字完成，移除光标并设置最终类名
-        cursorElement.remove();
+        // 打字完成，设置最终类名
         element.className = 'mark-translation';
       }
     };
@@ -378,24 +365,6 @@ function injectStyles() {
 
     .mark-translation-typing {
       margin-top: 8px;
-    }
-
-    .typing-cursor {
-      display: inline-block;
-      width: 2px;
-      height: 1em;
-      background-color: #007acc;
-      margin-left: 2px;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 50% {
-        opacity: 1;
-      }
-      51%, 100% {
-        opacity: 0;
-      }
     }
 
     .mark-translation-loading {

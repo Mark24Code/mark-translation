@@ -1,6 +1,7 @@
 // import React from 'react';
 // import { createRoot } from 'react-dom/client';
 import { TranslationConfig } from '../shared/types';
+import { createMatchingEngine } from '../shared/matching-engine';
 
 // 获取语言设置的辅助函数
 async function getLanguage(): Promise<'zh' | 'en'> {
@@ -67,31 +68,81 @@ class TranslationManager {
     return (chineseChars.length / totalChars) > 0.3;
   }
 
+  // 调试方法：显示找到的元素信息
+  private debugElements(selector: string, elements: NodeListOf<Element>) {
+    console.log(`Selector '${selector}' found ${elements.length} elements:`);
+    elements.forEach((element, index) => {
+      const text = this.extractTextContent(element);
+      const isValid = this.isValidText(text);
+      console.log(`  [${index}] ${isValid ? '✓' : '✗'} "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+    });
+  }
+
   // 获取文本段落
   private getTextParagraphs(): string[] {
     const paragraphs: string[] = [];
 
-    // 选择主要的文本容器
-    const selectors = [
-      'p',
-      'article p',
-      'main p',
-      '.content p',
-      '.article p',
-      '.post p'
-    ];
+    // 使用匹配引擎查找和验证元素
+    const matchingEngine = createMatchingEngine();
+    const elements = matchingEngine.findElements();
+    const validatedResults = matchingEngine.validateElements(elements);
+    const prioritizedResults = matchingEngine.prioritizeResults(validatedResults);
 
-    selectors.forEach(selector => {
-      const elements = document.querySelectorAll(selector);
-      elements.forEach(element => {
-        const text = element.textContent?.trim();
-        if (text && text.length > 10) { // 过滤短文本
-          paragraphs.push(text);
-        }
-      });
+    // 提取有效的文本内容
+    prioritizedResults.forEach(result => {
+      if (result.isValid) {
+        paragraphs.push(result.text);
+      }
     });
 
     return [...new Set(paragraphs)]; // 去重
+  }
+
+  // 提取文本内容，处理复杂的 DOM 结构
+  private extractTextContent(element: Element): string {
+    // 克隆元素以避免修改原 DOM
+    const clone = element.cloneNode(true) as Element;
+
+    // 移除不需要的元素
+    const elementsToRemove = clone.querySelectorAll(
+      'script, style, noscript, iframe, img, video, audio, button, input, select, textarea, nav, header, footer, aside, .ad, .advertisement, .sponsored, [aria-hidden="true"]'
+    );
+    elementsToRemove.forEach(el => el.remove());
+
+    // 获取清理后的文本内容
+    const text = clone.textContent?.trim() || '';
+
+    // 进一步清理文本
+    return this.cleanText(text);
+  }
+
+  // 清理文本内容
+  private cleanText(text: string): string {
+    return text
+      .replace(/\s+/g, ' ') // 合并多个空格
+      .replace(/^\s+|\s+$/g, '') // 去除首尾空格
+      .replace(/[\r\n\t]+/g, ' ') // 替换换行符和制表符
+      .trim();
+  }
+
+  // 验证文本是否适合翻译
+  private isValidText(text: string): boolean {
+    if (!text || text.length < 10) return false;
+
+    // 过滤掉 URL
+    if (text.match(/https?:\/\/[^\s]+/)) return false;
+
+    // 过滤掉纯数字或符号
+    if (text.replace(/[^\w]/g, '').length < 5) return false;
+
+    // 过滤掉常见的导航文本
+    const navigationWords = ['home', 'about', 'contact', 'login', 'sign up', 'menu', 'search', 'follow', 'like', 'share'];
+    const lowerText = text.toLowerCase();
+    if (navigationWords.some(word => lowerText.includes(word))) {
+      return false;
+    }
+
+    return true;
   }
 
   // 翻译文本
@@ -475,26 +526,16 @@ class ScrollTranslationManager extends TranslationManager {
   // 获取所有文本元素
   private getAllTextElements(): Element[] {
     const elements: Element[] = [];
-    const selectors = [
-      'p',
-      'article p',
-      'main p',
-      '.content p',
-      '.article p',
-      '.post p',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'li',
-      '.text', '.paragraph'
-    ];
 
-    selectors.forEach(selector => {
-      const foundElements = document.querySelectorAll(selector);
-      foundElements.forEach(element => {
-        const text = element.textContent?.trim();
-        if (text && text.length > 10 && !this.processedElements.has(element)) {
-          elements.push(element);
-        }
-      });
+    // 使用匹配引擎查找元素
+    const matchingEngine = createMatchingEngine();
+    const foundElements = matchingEngine.findElements();
+
+    // 过滤已处理的元素
+    foundElements.forEach(element => {
+      if (!this.processedElements.has(element)) {
+        elements.push(element);
+      }
     });
 
     return elements;
@@ -502,41 +543,36 @@ class ScrollTranslationManager extends TranslationManager {
 
   // 计算元素优先级（基于可见性）
   private calculatePriority(element: Element): number {
-    const rect = element.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    // 使用匹配引擎的优先级策略
+    const matchingEngine = createMatchingEngine();
+    const config = matchingEngine.getConfig();
 
-    // 检查是否在可见区域内
-    const isVisible = (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <= viewportHeight &&
-      rect.right <= viewportWidth
-    );
+    let priority = 999; // 默认优先级
 
-    if (isVisible) {
-      // 在可见区域内，优先级最高（数值越小优先级越高）
-      return 0;
-    } else {
-      // 在可见区域外，根据距离计算优先级
-      // 距离视口顶部越近，优先级越高
-      const distanceFromTop = Math.max(0, -rect.top);
-      const distanceFromBottom = Math.max(0, rect.bottom - viewportHeight);
-      const minDistance = Math.min(distanceFromTop, distanceFromBottom);
-
-      // 距离越小，优先级越高（数值越小）
-      return 100 + minDistance;
+    // 应用所有启用的优先级策略
+    for (const strategy of config.strategies) {
+      if (strategy.enabled) {
+        const strategyPriority = strategy.calculator(element);
+        // 取最小的优先级值（数值越小优先级越高）
+        priority = Math.min(priority, strategyPriority);
+      }
     }
+
+    return priority;
   }
 
   // 处理元素可见
   private handleElementVisible(element: Element) {
     if (this.processedElements.has(element)) return;
 
-    const text = element.textContent?.trim();
-    if (!text || text.length < 10) return;
+    // 使用匹配引擎验证元素
+    const matchingEngine = createMatchingEngine();
+    const elements = [element];
+    const validatedResults = matchingEngine.validateElements(elements);
 
-    // 计算优先级
+    if (validatedResults.length === 0 || !validatedResults[0].isValid) return;
+
+    const text = validatedResults[0].text;
     const priority = this.calculatePriority(element);
 
     // 添加到翻译队列（按优先级排序）
@@ -558,14 +594,28 @@ class ScrollTranslationManager extends TranslationManager {
   private scanVisibleArea() {
     const elements = this.getAllTextElements();
 
+    // 使用匹配引擎的可见性策略来优化检测
+    const matchingEngine = createMatchingEngine();
+    const config = matchingEngine.getConfig();
+    const visibilityStrategy = config.strategies.find(s => s.id === 'visibility-priority' && s.enabled);
+
     elements.forEach(element => {
-      const rect = element.getBoundingClientRect();
-      const isVisible = (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-      );
+      let isVisible = false;
+
+      if (visibilityStrategy) {
+        // 使用匹配引擎的可见性策略
+        const priority = visibilityStrategy.calculator(element);
+        isVisible = priority === 0; // 可见性策略中0表示完全可见
+      } else {
+        // 回退到基本的可见性检测
+        const rect = element.getBoundingClientRect();
+        isVisible = (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+      }
 
       if (isVisible) {
         this.handleElementVisible(element);

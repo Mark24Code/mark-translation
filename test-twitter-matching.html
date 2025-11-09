@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Matching Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tweet {
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            background: white;
+        }
+        .tweet-text {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        [data-testid="tweetText"] {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        [role="article"] {
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Twitter Matching Test Page</h1>
+
+    <!-- Standard paragraph content -->
+    <p>This is a standard paragraph that should be matched by the basic p selector. It contains enough text to be considered valid for translation.</p>
+
+    <!-- Twitter-like content with data-testid attribute -->
+    <div class="tweet">
+        <div data-testid="tweetText">This is a tweet with the data-testid attribute. This is the kind of content structure used by modern Twitter.</div>
+    </div>
+
+    <!-- Twitter-like content with role attribute -->
+    <div role="article">
+        <p>This is content within a role="article" element. This structure is commonly used in modern web applications.</p>
+    </div>
+
+    <!-- Twitter-like content with tweet-text class -->
+    <div class="tweet">
+        <div class="tweet-text">This is a tweet with the tweet-text class. This is used by older versions of Twitter.</div>
+    </div>
+
+    <!-- Content that should NOT be matched (too short) -->
+    <p>Short</p>
+
+    <!-- Content that should NOT be matched (navigation text) -->
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <!-- Content that should NOT be matched (URL) -->
+    <p>Visit https://example.com for more information</p>
+
+    <!-- Valid content with complex structure -->
+    <div class="content">
+        <p>This is content within a .content container. It should be matched by the .content p selector.</p>
+    </div>
+
+    <script>
+        // Simulate the content script functionality for testing
+        function testSelectors() {
+            const selectors = [
+                'p',
+                'article p',
+                'main p',
+                '.content p',
+                '.article p',
+                '.post p',
+                '[data-testid="tweetText"]',
+                '[role="article"] p',
+                '.tweet-text',
+                '[data-ad-comet-preview="message"]',
+                '.feed-shared-update-v2__description',
+                '.comment',
+                '.message',
+                '.story-body',
+                '.entry-content',
+                '.post-content',
+                '.text-content',
+                '.post-body',
+                '.comment-content',
+                '.message-body',
+                '[class*="text"]',
+                '[class*="content"]',
+                '[class*="message"]',
+                '[class*="post"]',
+                '[class*="tweet"]',
+                '[class*="comment"]'
+            ];
+
+            const results = [];
+
+            selectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    if (elements.length > 0) {
+                        elements.forEach(element => {
+                            const text = element.textContent?.trim() || '';
+                            if (text && text.length >= 10 &&
+                                !text.match(/https?:\/\/[^\s]+/) &&
+                                text.replace(/[^\w]/g, '').length >= 5) {
+
+                                const navigationWords = ['home', 'about', 'contact', 'login', 'sign up', 'menu', 'search', 'follow', 'like', 'share'];
+                                const lowerText = text.toLowerCase();
+                                const isNavigation = navigationWords.some(word => lowerText.includes(word));
+
+                                if (!isNavigation) {
+                                    results.push({
+                                        selector,
+                                        text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+                                        length: text.length,
+                                        isValid: true
+                                    });
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.warn(`Selector '${selector}' failed:`, error);
+                }
+            });
+
+            // Display results
+            const resultsDiv = document.createElement('div');
+            resultsDiv.innerHTML = `<h2>Selector Test Results</h2>
+            <p>Found ${results.length} valid text elements:</p>
+            <ul>${results.map(r => `<li><strong>${r.selector}</strong>: "${r.text}" (${r.length} chars)</li>`).join('')}</ul>`;
+            document.body.appendChild(resultsDiv);
+
+            return results;
+        }
+
+        // Run test when page loads
+        document.addEventListener('DOMContentLoaded', testSelectors);
+    </script>
+</body>
+</html>

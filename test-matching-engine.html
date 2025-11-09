@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Engine Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .info { border-left: 4px solid #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>Matching Engine Test Page</h1>
+
+    <div class="test-section">
+        <h2>Test Content</h2>
+
+        <!-- 通用段落 -->
+        <p>This is a regular paragraph that should be matched by the universal text rule. It contains meaningful content that is suitable for translation.</p>
+
+        <!-- 社交媒体样式内容 -->
+        <div data-testid="tweetText">
+            This is a tweet-like message that should be matched by the Twitter rule. #testing
+        </div>
+
+        <!-- 博客文章内容 -->
+        <div class="article">
+            <p>This is a paragraph inside an article element. It should be matched by the universal text rule.</p>
+        </div>
+
+        <!-- 导航文本（应该被过滤） -->
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <!-- 短文本（应该被过滤） -->
+        <p>Short</p>
+
+        <!-- URL文本（应该被过滤） -->
+        <p>Visit https://example.com for more information</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // 简单的测试脚本
+        function runTests() {
+            const results = [];
+
+            // 测试选择器匹配
+            const selectors = [
+                'p',
+                '[data-testid="tweetText"]',
+                '.article p'
+            ];
+
+            selectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                results.push({
+                    type: 'selector',
+                    selector: selector,
+                    count: elements.length,
+                    elements: Array.from(elements).map(el => el.textContent.trim())
+                });
+            });
+
+            // 显示结果
+            const resultsContainer = document.getElementById('testResults');
+            resultsContainer.innerHTML = '';
+
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result info';
+
+                let content = `<strong>${result.selector}</strong>: Found ${result.count} elements`;
+                if (result.count > 0) {
+                    content += '<ul>';
+                    result.elements.forEach(text => {
+                        content += `<li>"${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"</li>`;
+                    });
+                    content += '</ul>';
+                }
+
+                resultDiv.innerHTML = content;
+                resultsContainer.appendChild(resultDiv);
+            });
+
+            // 添加说明
+            const explanation = document.createElement('div');
+            explanation.className = 'test-result info';
+            explanation.innerHTML = `
+                <strong>说明：</strong>
+                <ul>
+                    <li>通用段落应该被匹配</li>
+                    <li>Twitter样式的内容应该被匹配</li>
+                    <li>导航文本应该被过滤</li>
+                    <li>短文本应该被过滤</li>
+                    <li>包含URL的文本应该被过滤</li>
+                </ul>
+            `;
+            resultsContainer.appendChild(explanation);
+        }
+
+        // 页面加载完成后运行测试
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

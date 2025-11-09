@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
@@ -28,9 +28,45 @@ const Popup: React.FC = () => {
   const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
   const { t } = useI18n();
 
+  const [isScrollTranslation, setIsScrollTranslation] = useState(false);
+
   useEffect(() => {
     loadConfigs();
   }, []);
+
+  // 处理翻译页面
+  const handleTranslatePage = () => {
+    if (isScrollTranslation) {
+      // 发送滚动翻译消息
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            type: 'translatePageScroll',
+            config
+          });
+        }
+      });
+    } else {
+      // 使用传统翻译
+      translatePage();
+    }
+  };
+
+  // 处理清除翻译
+  const handleClearTranslations = () => {
+    clearTranslations();
+
+    // 如果正在滚动翻译，也停止它
+    if (isScrollTranslation) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            type: 'stopScrollTranslation'
+          });
+        }
+      });
+    }
+  };
 
   // 获取状态显示
   const getStatusInfo = () => {
@@ -46,6 +82,9 @@ const Popup: React.FC = () => {
       case 'error':
         return { message: errorMessage || t('popup.translationFailed'), type: 'error' as const };
       default:
+        if (isScrollTranslation) {
+          return { message: '滚动翻译模式已启用', type: 'info' as const };
+        }
         return { message: t('popup.readyToTranslate'), type: 'info' as const };
     }
   };
@@ -159,9 +198,23 @@ const Popup: React.FC = () => {
           </select>
         </div>
 
+        {/* 滚动翻译模式切换 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="scrollTranslation"
+            checked={isScrollTranslation}
+            onChange={(e) => setIsScrollTranslation(e.target.checked)}
+            style={{ margin: 0 }}
+          />
+          <label htmlFor="scrollTranslation" style={{ fontSize: '12px', color: '#666', cursor: 'pointer' }}>
+            滚动翻译模式
+          </label>
+        </div>
+
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={translatePage}
+            onClick={handleTranslatePage}
             disabled={translationStatus === 'translating' || !activeAIConfig}
             style={{
               flex: 1,
@@ -175,10 +228,11 @@ const Popup: React.FC = () => {
               opacity: translationStatus === 'translating' || !activeAIConfig ? 0.6 : 1
             }}
           >
-            {translationStatus === 'translating' ? t('popup.translating') : t('popup.translatePage')}
+            {translationStatus === 'translating' ? t('popup.translating') :
+             isScrollTranslation ? '开始滚动翻译' : t('popup.translatePage')}
           </button>
           <button
-            onClick={clearTranslations}
+            onClick={handleClearTranslations}
             style={{
               flex: 1,
               padding: '10px',

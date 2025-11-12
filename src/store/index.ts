@@ -1,10 +1,9 @@
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
 import { AIConfig, TranslationConfig, AppConfig, TranslationStyle } from '../shared/types';
 import { StorageManager } from '../utils/storage';
 
-// 应用配置状态
-export const appConfigAtom = atomWithStorage<AppConfig>('appConfig', {
+// 应用配置状态 - 使用 StorageManager 而不是 atomWithStorage 以确保 Firefox 兼容性
+export const appConfigAtom = atom<AppConfig>({
   aiConfigs: [],
   translationConfig: {
     sourceLang: 'en',
@@ -291,8 +290,10 @@ export const resetConfigsAtom = atom(
           targetLang: 'zh',
           autoTranslate: false,
           parallelTasks: 6,
-          activeAIConfigId: null
+          activeAIConfigId: null,
+          activeTranslationStyleId: null
         },
+        translationStyles: [],
         language: 'zh'
       };
       set(appConfigAtom, defaultConfig);

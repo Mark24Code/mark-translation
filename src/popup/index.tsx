@@ -248,12 +248,6 @@ const Popup: React.FC = () => {
             <div className="warning-text">
               {t('popup.noAiConfigurations')}
             </div>
-            <button
-              onClick={openSettings}
-              className="add-config-button"
-            >
-              {t('popup.addConfiguration')}
-            </button>
           </div>
         )}
 

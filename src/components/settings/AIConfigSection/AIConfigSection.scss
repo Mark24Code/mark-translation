@@ -1,23 +1,17 @@
 // AIConfigSection Styles
 .ai-config-section {
-  // Color variables
-  $morandi-purple: #8B7D9C;
-  $morandi-light-purple: #E8E4F0;
-  $morandi-dark-purple: #6B5B7A;
-  $text-primary: #333333;
-  $text-secondary: rgba(51, 51, 51, 0.7);
-  $text-tertiary: rgba(51, 51, 51, 0.5);
+  @import '../../../styles/variables';
 
   .section-header {
     margin: 0 0 20px 0;
-    color: $text-primary;
+    color: var(--text-primary);
     font-size: 24px;
     font-weight: 600;
   }
 
   .subsection-header {
     margin: 0 0 15px 0;
-    color: $text-primary;
+    color: var(--text-primary);
     font-size: 18px;
     font-weight: 500;
   }
@@ -28,22 +22,22 @@
 
   .empty-state {
     padding: 20px;
-    background: $morandi-light-purple;
+    background: var(--background-light);
     border-radius: 8px;
     text-align: center;
-    color: $text-secondary;
-    border: 1px solid $morandi-purple;
+    color: var(--text-secondary);
+    border: 1px solid var(--primary-color);
   }
 
   .config-item {
     padding: 15px;
-    border: 2px solid $morandi-light-purple;
+    border: 2px solid var(--secondary-color);
     border-radius: 8px;
-    background: #fff;
+    background: var(--background-primary);
 
     &.active {
-      border-color: $morandi-purple;
-      background: $morandi-light-purple;
+      border-color: var(--primary-color);
+      background: var(--background-light);
     }
 
     .config-header {
@@ -54,15 +48,15 @@
     }
 
     .config-name {
-      color: $text-primary;
+      color: var(--text-primary);
       font-weight: bold;
     }
 
     .active-badge {
       margin-left: 10px;
       padding: 2px 8px;
-      background: $morandi-purple;
-      color: white;
+      background: var(--primary-color);
+      color: var(--button-primary-text);
       border-radius: 12px;
       font-size: 12px;
     }
@@ -74,16 +68,16 @@
 
     .config-details {
       font-size: 14px;
-      color: $text-secondary;
+      color: var(--text-secondary);
     }
   }
 
   .config-form {
     max-width: 500px;
     padding: 20px;
-    background: $morandi-light-purple;
+    background: var(--background-light);
     border-radius: 8px;
-    border: 1px solid $morandi-purple;
+    border: 1px solid var(--primary-color);
   }
 
   .form-group {
@@ -94,20 +88,20 @@
     display: block;
     margin-bottom: 5px;
     font-weight: 500;
-    color: $text-primary;
+    color: var(--text-primary);
   }
 
   .form-input {
     width: 100%;
     padding: 10px;
-    border: 1px solid $morandi-purple;
+    border: 1px solid var(--primary-color);
     border-radius: 4px;
     font-size: 14px;
-    background-color: #fff;
+    background-color: var(--background-primary);
 
     &:focus {
       outline: none;
-      border-color: $morandi-dark-purple;
+      border-color: var(--primary-color);
     }
   }
 
@@ -135,36 +129,36 @@
     transition: all 0.2s ease;
 
     &.primary {
-      background: $morandi-purple;
-      color: white;
+      background: var(--button-primary-bg);
+      color: var(--button-primary-text);
 
       &:hover:not(:disabled) {
-        background: $morandi-dark-purple;
+        background: var(--button-primary-hover);
       }
 
       &:disabled {
-        background: $text-tertiary;
+        background: var(--button-disabled-bg);
         cursor: not-allowed;
         opacity: 0.6;
       }
     }
 
     &.secondary {
-      background: #f8f9fa;
-      color: $text-primary;
-      border: 1px solid #ddd;
+      background: var(--button-secondary-bg);
+      color: var(--button-secondary-text);
+      border: 1px solid var(--border-primary);
 
       &:hover {
-        background: #e9ecef;
+        background: var(--button-secondary-hover);
       }
     }
 
     &.danger {
-      background: #dc3545;
-      color: white;
+      background: var(--button-danger-bg);
+      color: var(--button-danger-text);
 
       &:hover {
-        background: #c82333;
+        background: var(--button-danger-hover);
       }
     }
 

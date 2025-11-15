@@ -1,23 +1,21 @@
 // BackupSection Styles
+@import '../../../styles/variables';
+
 .backup-section {
-  // Color variables
-  $morandi-purple: #8B7D9C;
-  $morandi-light-purple: #E8E4F0;
-  $text-primary: #333333;
-  $text-secondary: rgba(51, 51, 51, 0.7);
+  // Color variables (now using CSS variables from centralized file)
 
   .section-header {
     margin: 0 0 20px 0;
-    color: $text-primary;
+    color: var(--text-primary);
     font-size: 24px;
     font-weight: 600;
   }
 
   .backup-container {
     padding: 20px;
-    background: $morandi-light-purple;
+    background: var(--background-light);
     border-radius: 8px;
-    border: 1px solid $morandi-purple;
+    border: 1px solid var(--primary-color);
   }
 
   .button-group {
@@ -44,29 +42,29 @@
     box-sizing: border-box;
 
     &.primary {
-      background: $morandi-purple;
-      color: white;
+      background: var(--button-primary-bg);
+      color: var(--button-primary-text);
 
       &:hover {
-        background: darken($morandi-purple, 10%);
+        background: var(--button-primary-hover);
       }
     }
 
     &.secondary {
-      background: #f8f9fa;
-      color: $text-primary;
-      border: 1px solid #ddd;
+      background: var(--button-secondary-bg);
+      color: var(--button-secondary-text);
+      border: 1px solid var(--border-primary);
 
       &:hover {
-        background: #e9ecef;
+        background: var(--button-secondary-hover);
       }
     }
   }
 
   .file-input-label {
     padding: 12px 24px;
-    background: $morandi-purple;
-    color: white;
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
     border: none;
     border-radius: 6px;
     font-size: 14px;
@@ -81,7 +79,7 @@
     box-sizing: border-box;
 
     &:hover {
-      background: darken($morandi-purple, 10%);
+      background: var(--button-primary-hover);
     }
   }
 

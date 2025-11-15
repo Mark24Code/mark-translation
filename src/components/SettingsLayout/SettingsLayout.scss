@@ -1,42 +1,37 @@
 // 莫兰迪紫色配色方案
-$morandi-purple: #8B7D9C;
-$morandi-light-purple: #E8E4F0;
-$morandi-dark-purple: #6B5B7A;
-$text-primary: #333333;
-$text-secondary: rgba(51, 51, 51, 0.7);
-$text-tertiary: rgba(51, 51, 51, 0.5);
+@import '../../styles/variables';
 
 .settings-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #fafafa;
+  background-color: var(--background-secondary);
   border-radius: 20px;
 }
 
 .settings-layout__sidebar {
   width: 250px;
-  background-color: #fff;
-  border-right: 1px solid $morandi-light-purple;
+  background-color: var(--background-primary);
+  border-right: 1px solid var(--secondary-color);
   padding: 20px 10px;
   box-shadow: 2px 0 4px rgba(139, 125, 156, 0.1);
 }
 
 .settings-layout__header {
   padding: 0 20px 20px 20px;
-  border-bottom: 1px solid $morandi-light-purple;
+  border-bottom: 1px solid var(--secondary-color);
 }
 
 .settings-layout__title {
   margin: 0;
   font-size: 20px;
-  color: $morandi-purple;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
 .settings-layout__subtitle {
   margin: 4px 0 0 0;
   font-size: 14px;
-  color: $text-secondary;
+  color: var(--text-secondary);
 }
 
 .settings-layout__nav {
@@ -48,7 +43,7 @@ $text-tertiary: rgba(51, 51, 51, 0.5);
   padding: 12px 20px;
   border: none;
   background: transparent;
-  color: $text-primary;
+  color: var(--text-primary);
   text-align: left;
   cursor: pointer;
   font-size: 14px;
@@ -60,14 +55,14 @@ $text-tertiary: rgba(51, 51, 51, 0.5);
   border-radius: 0;
 
   &--active {
-    background: $morandi-purple;
-    color: #fff;
+    background: var(--primary-color);
+    color: var(--button-primary-text);
     font-weight: 600;
     border-radius: 10px;
   }
 
   &:hover:not(.settings-layout__nav-button--active) {
-    background-color: $morandi-light-purple;
+    background-color: var(--background-light);
     border-radius: 10px;
   }
 }

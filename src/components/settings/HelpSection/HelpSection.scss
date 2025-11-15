@@ -1,23 +1,21 @@
 // HelpSection Styles
+@import '../../../styles/variables';
+
 .help-section {
-  // Color variables
-  $morandi-purple: #8B7D9C;
-  $morandi-light-purple: #E8E4F0;
-  $text-primary: #333333;
-  $text-secondary: rgba(51, 51, 51, 0.7);
+  // Color variables (now using CSS variables from centralized file)
 
   .section-header {
     margin: 0 0 20px 0;
-    color: $text-primary;
+    color: var(--text-primary);
     font-size: 24px;
     font-weight: 600;
   }
 
   .help-container {
-    background: $morandi-light-purple;
+    background: var(--background-light);
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid $morandi-purple;
+    border: 1px solid var(--primary-color);
   }
 
   .help-content {
@@ -34,7 +32,7 @@
   }
 
   .help-link {
-    color: $morandi-purple;
+    color: var(--primary-color);
     text-decoration: none;
 
     &:hover {

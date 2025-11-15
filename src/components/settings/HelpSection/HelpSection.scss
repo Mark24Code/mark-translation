@@ -1,0 +1,44 @@
+// HelpSection Styles
+.help-section {
+  // Color variables
+  $morandi-purple: #8B7D9C;
+  $morandi-light-purple: #E8E4F0;
+  $text-primary: #333333;
+  $text-secondary: rgba(51, 51, 51, 0.7);
+
+  .section-header {
+    margin: 0 0 20px 0;
+    color: $text-primary;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .help-container {
+    background: $morandi-light-purple;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid $morandi-purple;
+  }
+
+  .help-content {
+    line-height: 1.6;
+  }
+
+  .help-step {
+    margin-bottom: 15px;
+  }
+
+  .help-list {
+    margin: 0 0 15px 20px;
+    padding: 0;
+  }
+
+  .help-link {
+    color: $morandi-purple;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

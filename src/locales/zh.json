@@ -91,6 +91,7 @@
     "noAiConfigurations": "未找到 AI 配置",
     "addConfiguration": "添加配置",
     "translatePage": "翻译页面",
+    "showOriginal": "显示原文",
     "clear": "清除",
     "settings": "设置",
     "noActiveConfiguration": "⚠️ 没有激活的 AI 配置",

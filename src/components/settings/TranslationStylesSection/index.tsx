@@ -10,6 +10,7 @@ import {
   deleteTranslationStyleAtom,
   setActiveTranslationStyleAtom
 } from '../../../store';
+import './TranslationStylesSection.scss';
 
 interface TranslationStylesSectionProps {
   status: string;
@@ -44,13 +45,6 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
   const setActiveTranslationStyle = useSetAtom(setActiveTranslationStyleAtom);
 
   const { t } = useI18n();
-
-  // 莫兰迪紫色配色方案
-  const morandiPurple = '#8B7D9C';
-  const morandiLightPurple = '#E8E4F0';
-  const textPrimary = '#333333';
-  const textSecondary = 'rgba(51, 51, 51, 0.7)';
-  const textTertiary = 'rgba(51, 51, 51, 0.5)';
 
   const handleNewStyleChange = (field: keyof typeof newStyle, value: string) => {
     setNewStyle(prev => ({
@@ -150,37 +144,20 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
   };
 
   return (
-    <div>
-      <h2 style={{
-        margin: '0 0 20px 0',
-        color: textPrimary,
-        fontSize: '24px',
-        fontWeight: '600'
-      }}>
+    <div className="translation-styles-section">
+      <h2 className="section-header">
         {t('settings.translationStyles')}
       </h2>
 
       {/* Active Translation Style Selection */}
-      <div style={{ marginBottom: '30px' }}>
-        <h3 style={{
-          margin: '0 0 15px 0',
-          color: textPrimary,
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
+      <div className="style-list">
+        <h3 className="subsection-header">
           {t('settings.activeTranslationStyle')}
         </h3>
         <select
           value={activeTranslationStyle?.id || ''}
           onChange={(e) => handleSetActiveStyle(e.target.value || null)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: `1px solid ${morandiPurple}`,
-            borderRadius: '4px',
-            fontSize: '14px',
-            backgroundColor: '#fff'
-          }}
+          className="form-select"
         >
           <option value="">{t('settings.noTranslationStyle')}</option>
           {(translationStyles || []).map(style => (
@@ -189,98 +166,54 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
             </option>
           ))}
         </select>
-        <div style={{ fontSize: '12px', color: textSecondary, marginTop: '4px' }}>
+        <div className="form-description">
           {t('settings.translationStyleDescription')}
         </div>
       </div>
 
       {/* Translation Styles List */}
-      <div style={{ marginBottom: '30px' }}>
-        <h3 style={{
-          margin: '0 0 15px 0',
-          color: textPrimary,
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
+      <div className="style-list">
+        <h3 className="subsection-header">
           {t('settings.yourTranslationStyles')}
         </h3>
 
         {(translationStyles || []).length === 0 ? (
-          <div style={{
-            padding: '20px',
-            background: morandiLightPurple,
-            borderRadius: '8px',
-            textAlign: 'center',
-            color: textSecondary,
-            border: `1px solid ${morandiPurple}`
-          }}>
+          <div className="empty-state">
             {t('settings.noTranslationStyles')}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="styles-grid">
             {(translationStyles || []).map(style => (
-              <div key={style.id} style={{
-                padding: '15px',
-                border: `2px solid ${style.id === activeTranslationStyle?.id ? morandiPurple : morandiLightPurple}`,
-                borderRadius: '8px',
-                background: style.id === activeTranslationStyle?.id ? morandiLightPurple : '#fff'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div
+                key={style.id}
+                className={`style-item ${style.id === activeTranslationStyle?.id ? 'active' : ''}`}
+              >
+                <div className="style-header">
                   <div>
-                    <strong style={{ color: textPrimary }}>{style.name}</strong>
+                    <strong className="style-name">{style.name}</strong>
                     {style.isBuiltIn && (
-                      <span style={{
-                        marginLeft: '10px',
-                        padding: '2px 8px',
-                        background: textTertiary,
-                        color: 'white',
-                        borderRadius: '12px',
-                        fontSize: '12px'
-                      }}>
+                      <span className="badge built-in">
                         内置
                       </span>
                     )}
                     {style.id === activeTranslationStyle?.id && (
-                      <span style={{
-                        marginLeft: '10px',
-                        padding: '2px 8px',
-                        background: morandiPurple,
-                        color: 'white',
-                        borderRadius: '12px',
-                        fontSize: '12px'
-                      }}>
+                      <span className="badge active">
                         激活
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="action-buttons">
                     {!style.isBuiltIn && (
                       <>
                         <button
                           onClick={() => setEditingStyle(style)}
-                          style={{
-                            padding: '6px 12px',
-                            background: '#f8f9fa',
-                            color: textPrimary,
-                            border: '1px solid #ddd',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            cursor: 'pointer'
-                          }}
+                          className="button secondary small"
                         >
                           {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDeleteStyle(style.id)}
-                          style={{
-                            padding: '6px 12px',
-                            background: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            cursor: 'pointer'
-                          }}
+                          className="button danger small"
                         >
                           {t('common.delete')}
                         </button>
@@ -288,9 +221,9 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
                     )}
                   </div>
                 </div>
-                <div style={{ fontSize: '14px', color: textSecondary }}>
+                <div className="style-details">
                   <div>{style.description}</div>
-                  <div style={{ marginTop: '8px', fontStyle: 'italic' }}>
+                  <div className="style-prompt">
                     <strong>提示词:</strong> {style.prompt}
                   </div>
                 </div>
@@ -301,24 +234,14 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
       </div>
 
       {/* Add/Edit Translation Style Form */}
-      <div style={{
-        padding: '20px',
-        background: morandiLightPurple,
-        borderRadius: '8px',
-        border: `1px solid ${morandiPurple}`
-      }}>
-        <h3 style={{
-          margin: '0 0 15px 0',
-          color: textPrimary,
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
+      <div className="style-form">
+        <h3 className="subsection-header">
           {editingStyle ? t('settings.editTranslationStyle') : t('settings.addNewTranslationStyle')}
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.styleName')}
             </label>
             <input
@@ -329,20 +252,13 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
                 : handleNewStyleChange('name', e.target.value)
               }
               placeholder="技术文档翻译"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-input"
               required
             />
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.styleDescription')}
             </label>
             <input
@@ -353,20 +269,13 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
                 : handleNewStyleChange('description', e.target.value)
               }
               placeholder="适合技术文档、API文档、代码注释等"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-input"
               required
             />
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.stylePrompt')}
             </label>
             <textarea
@@ -377,52 +286,27 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
               }
               placeholder="请将以下技术文档进行中英互译。保持技术术语的准确性，使用专业的技术语言..."
               rows={4}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff',
-                resize: 'vertical'
-              }}
+              className="form-textarea"
               required
             />
-            <div style={{ fontSize: '12px', color: textSecondary, marginTop: '4px' }}>
+            <div className="form-description">
               {t('settings.stylePromptDescription')}
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="button-group">
             {editingStyle ? (
               <>
                 <button
                   onClick={handleUpdateStyle}
                   disabled={isSaving}
-                  style={{
-                    padding: '12px 24px',
-                    background: isSaving ? textTertiary : morandiPurple,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    cursor: isSaving ? 'not-allowed' : 'pointer',
-                    opacity: isSaving ? 0.6 : 1
-                  }}
+                  className={`button primary ${isSaving ? 'disabled' : ''}`}
                 >
                   {isSaving ? t('common.loading') : t('common.save')}
                 </button>
                 <button
                   onClick={() => setEditingStyle(null)}
-                  style={{
-                    padding: '12px 24px',
-                    background: '#f8f9fa',
-                    color: textPrimary,
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}
+                  className="button secondary"
                 >
                   {t('common.cancel')}
                 </button>
@@ -431,16 +315,7 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
               <button
                 onClick={handleAddStyle}
                 disabled={isSaving || !newStyle.name || !newStyle.description || !newStyle.prompt}
-                style={{
-                  padding: '12px 24px',
-                  background: isSaving || !newStyle.name || !newStyle.description || !newStyle.prompt ? textTertiary : morandiPurple,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: isSaving || !newStyle.name || !newStyle.description || !newStyle.prompt ? 'not-allowed' : 'pointer',
-                  opacity: isSaving || !newStyle.name || !newStyle.description || !newStyle.prompt ? 0.6 : 1
-                }}
+                className={`button primary ${isSaving || !newStyle.name || !newStyle.description || !newStyle.prompt ? 'disabled' : ''}`}
               >
                 {isSaving ? t('common.loading') : t('settings.addNewTranslationStyle')}
               </button>

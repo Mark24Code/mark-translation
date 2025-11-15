@@ -1,0 +1,204 @@
+// TranslationStylesSection Styles
+.translation-styles-section {
+  // Color variables
+  $morandi-purple: #8B7D9C;
+  $morandi-light-purple: #E8E4F0;
+  $text-primary: #333333;
+  $text-secondary: rgba(51, 51, 51, 0.7);
+  $text-tertiary: rgba(51, 51, 51, 0.5);
+
+  .section-header {
+    margin: 0 0 20px 0;
+    color: $text-primary;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .subsection-header {
+    margin: 0 0 15px 0;
+    color: $text-primary;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .style-list {
+    margin-bottom: 30px;
+  }
+
+  .empty-state {
+    padding: 20px;
+    background: $morandi-light-purple;
+    border-radius: 8px;
+    text-align: center;
+    color: $text-secondary;
+    border: 1px solid $morandi-purple;
+  }
+
+  .style-item {
+    padding: 15px;
+    border: 2px solid $morandi-light-purple;
+    border-radius: 8px;
+    background: #fff;
+
+    &.active {
+      border-color: $morandi-purple;
+      background: $morandi-light-purple;
+    }
+
+    .style-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .style-name {
+      color: $text-primary;
+      font-weight: bold;
+    }
+
+    .badge {
+      margin-left: 10px;
+      padding: 2px 8px;
+      color: white;
+      border-radius: 12px;
+      font-size: 12px;
+
+      &.built-in {
+        background: $text-tertiary;
+      }
+
+      &.active {
+        background: $morandi-purple;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .style-details {
+      font-size: 14px;
+      color: $text-secondary;
+    }
+
+    .style-prompt {
+      margin-top: 8px;
+      font-style: italic;
+    }
+  }
+
+  .style-form {
+    padding: 20px;
+    background: $morandi-light-purple;
+    border-radius: 8px;
+    border: 1px solid $morandi-purple;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: $text-primary;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid $morandi-purple;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #fff;
+
+    &:focus {
+      outline: none;
+      border-color: darken($morandi-purple, 10%);
+    }
+  }
+
+  .form-textarea {
+    @extend .form-input;
+    resize: vertical;
+  }
+
+  .form-select {
+    @extend .form-input;
+  }
+
+  .form-description {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-top: 4px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+  }
+
+  .button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.primary {
+      background: $morandi-purple;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: darken($morandi-purple, 10%);
+      }
+
+      &:disabled {
+        background: $text-tertiary;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    }
+
+    &.secondary {
+      background: #f8f9fa;
+      color: $text-primary;
+      border: 1px solid #ddd;
+
+      &:hover {
+        background: #e9ecef;
+      }
+    }
+
+    &.danger {
+      background: #dc3545;
+      color: white;
+
+      &:hover {
+        background: #c82333;
+      }
+    }
+
+    &.small {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+  }
+
+  .styles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+}

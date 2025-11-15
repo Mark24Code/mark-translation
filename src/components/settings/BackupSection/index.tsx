@@ -6,6 +6,7 @@ import {
   importConfigsAtom,
   resetConfigsAtom
 } from '../../../store';
+import './BackupSection.scss';
 
 interface BackupSectionProps {
   status: string;
@@ -25,12 +26,6 @@ const BackupSection: React.FC<BackupSectionProps> = ({
   const resetConfigs = useSetAtom(resetConfigsAtom);
 
   const { t } = useI18n();
-
-  // 莫兰迪紫色配色方案
-  const morandiPurple = '#8B7D9C';
-  const morandiLightPurple = '#E8E4F0';
-  const textPrimary = '#333333';
-  const textSecondary = 'rgba(51, 51, 51, 0.7)';
 
   const handleExportConfig = async () => {
     try {
@@ -85,68 +80,33 @@ const BackupSection: React.FC<BackupSectionProps> = ({
   };
 
   return (
-    <div>
-      <h2 style={{
-        margin: '0 0 20px 0',
-        color: textPrimary,
-        fontSize: '24px',
-        fontWeight: '600'
-      }}>
+    <div className="backup-section">
+      <h2 className="section-header">
         {t('settings.backupRestore')}
       </h2>
 
-      <div style={{
-        padding: '20px',
-        background: morandiLightPurple,
-        borderRadius: '8px',
-        border: `1px solid ${morandiPurple}`
-      }}>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <div className="backup-container">
+        <div className="button-group">
           <button
             onClick={handleExportConfig}
-            style={{
-              padding: '12px 24px',
-              background: morandiPurple,
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
+            className="button primary"
           >
             {t('settings.exportConfiguration')}
           </button>
 
-          <label style={{
-            padding: '12px 24px',
-            background: morandiPurple,
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'inline-block'
-          }}>
+          <label className="file-input-label">
             {t('settings.importConfiguration')}
             <input
               type="file"
               accept=".json"
               onChange={handleImportConfig}
-              style={{ display: 'none' }}
+              className="file-input"
             />
           </label>
 
           <button
             onClick={handleResetConfig}
-            style={{
-              padding: '12px 24px',
-              background: '#f8f9fa',
-              color: textPrimary,
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
+            className="button secondary"
           >
             {t('settings.resetAllSettings')}
           </button>

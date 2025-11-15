@@ -1,5 +1,6 @@
 import React from 'react';
 import { useI18n } from '../../utils/i18n';
+import './SettingsLayout.scss';
 
 interface SettingsLayoutProps {
   activeSection: string;
@@ -23,79 +24,29 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
     { id: 'help', label: t('settings.gettingStarted'), icon: '❓' }
   ];
 
-  // 莫兰迪紫色配色方案
-  const morandiPurple = '#8B7D9C';
-  const morandiLightPurple = '#E8E4F0';
-  const morandiDarkPurple = '#6B5B7A';
-  const textPrimary = '#333333';
-  const textSecondary = 'rgba(51, 51, 51, 0.7)';
-  const textTertiary = 'rgba(51, 51, 51, 0.5)';
-
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      backgroundColor: '#fafafa'
-    }}>
+    <div className="settings-layout">
       {/* 左侧导航栏 */}
-      <div style={{
-        width: '250px',
-        backgroundColor: '#fff',
-        borderRight: `1px solid ${morandiLightPurple}`,
-        padding: '20px 0',
-        boxShadow: '2px 0 4px rgba(139, 125, 156, 0.1)'
-      }}>
-        <div style={{ padding: '0 20px 20px 20px', borderBottom: `1px solid ${morandiLightPurple}` }}>
-          <h1 style={{
-            margin: 0,
-            fontSize: '20px',
-            color: morandiPurple,
-            fontWeight: '600'
-          }}>
+      <div className="settings-layout__sidebar">
+        <div className="settings-layout__header">
+          <h1 className="settings-layout__title">
             {t('app.title')}
           </h1>
-          <p style={{
-            margin: '4px 0 0 0',
-            fontSize: '14px',
-            color: textSecondary
-          }}>
+          <p className="settings-layout__subtitle">
             {t('settings.title')}
           </p>
         </div>
 
-        <nav style={{ marginTop: '20px' }}>
+        <nav className="settings-layout__nav">
           {sections.map(section => (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
-              style={{
-                width: '100%',
-                padding: '12px 20px',
-                border: 'none',
-                background: activeSection === section.id ? morandiPurple : 'transparent',
-                color: activeSection === section.id ? '#fff' : textPrimary,
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: activeSection === section.id ? '600' : '400',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                transition: 'all 0.2s ease',
-                borderRadius: '0'
-              }}
-              onMouseEnter={(e) => {
-                if (activeSection !== section.id) {
-                  e.currentTarget.style.backgroundColor = morandiLightPurple;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeSection !== section.id) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
+              className={`settings-layout__nav-button ${
+                activeSection === section.id ? 'settings-layout__nav-button--active' : ''
+              }`}
             >
-              <span style={{ fontSize: '16px' }}>{section.icon}</span>
+              <span className="settings-layout__nav-icon">{section.icon}</span>
               {section.label}
             </button>
           ))}
@@ -103,11 +54,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
       </div>
 
       {/* 右侧内容区域 */}
-      <div style={{
-        flex: 1,
-        padding: '30px',
-        overflow: 'auto'
-      }}>
+      <div className="settings-layout__content">
         {children}
       </div>
     </div>

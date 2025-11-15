@@ -42,37 +42,38 @@ const Popup: React.FC = () => {
     loadConfigs();
   }, []);
 
-  // 处理翻译页面
-  const handleTranslatePage = () => {
-    if (isScrollTranslation) {
-      // 发送滚动翻译消息
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-            type: 'translatePageScroll',
-            config
-          });
-        }
-      });
+  // 处理翻译/显示原文切换
+  const handleToggleTranslation = () => {
+    if (translationStatus === 'idle' || translationStatus === 'error') {
+      // 开始翻译
+      if (isScrollTranslation) {
+        // 发送滚动翻译消息
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'translatePageScroll',
+              config
+            });
+          }
+        });
+      } else {
+        // 使用传统翻译
+        translatePage();
+      }
     } else {
-      // 使用传统翻译
-      translatePage();
-    }
-  };
+      // 清除翻译，显示原文
+      clearTranslations();
 
-  // 处理清除翻译
-  const handleClearTranslations = () => {
-    clearTranslations();
-
-    // 如果正在滚动翻译，也停止它
-    if (isScrollTranslation) {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-            type: 'stopScrollTranslation'
-          });
-        }
-      });
+      // 如果正在滚动翻译，也停止它
+      if (isScrollTranslation) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'stopScrollTranslation'
+            });
+          }
+        });
+      }
     }
   };
 
@@ -94,20 +95,45 @@ const Popup: React.FC = () => {
     }
   };
 
+  // 获取按钮文本
+  const getButtonText = () => {
+    if (translationStatus === 'idle' || translationStatus === 'error') {
+      return t('popup.translatePage');
+    } else {
+      return t('popup.showOriginal');
+    }
+  };
+
   const statusInfo = getStatusInfo();
 
   const handleSourceLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSourceLang = e.target.value as 'zh' | 'en';
+
+    // 如果源语言和目标语言相同，自动切换目标语言
+    const newTargetLang = newSourceLang === config.targetLang
+      ? (newSourceLang === 'zh' ? 'en' : 'zh')
+      : config.targetLang;
+
     const newConfig = {
       ...config,
-      sourceLang: e.target.value as 'zh' | 'en'
+      sourceLang: newSourceLang,
+      targetLang: newTargetLang
     };
     setConfig(newConfig);
   };
 
   const handleTargetLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTargetLang = e.target.value as 'zh' | 'en';
+
+    // 如果目标语言和源语言相同，自动切换源语言
+    const newSourceLang = newTargetLang === config.sourceLang
+      ? (newTargetLang === 'zh' ? 'en' : 'zh')
+      : config.sourceLang;
+
     const newConfig = {
       ...config,
-      targetLang: e.target.value as 'zh' | 'en'
+      sourceLang: newSourceLang,
+      targetLang: newTargetLang
     };
     setConfig(newConfig);
   };
@@ -142,6 +168,63 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="popup-content">
+        {/* Language Selection */}
+        <div className="language-selectors">
+          <select
+            value={config.sourceLang}
+            onChange={handleSourceLangChange}
+            className="language-select"
+          >
+            <option value="en">{t('settings.english')}</option>
+            <option value="zh">{t('settings.chinese')}</option>
+          </select>
+          →
+          <select
+            value={config.targetLang}
+            onChange={handleTargetLangChange}
+            className="language-select"
+          >
+            <option value="zh">{t('settings.chinese')}</option>
+            <option value="en">{t('settings.english')}</option>
+          </select>
+        </div>
+
+        {/* Translation Style Selection */}
+        <div className="translation-style-section">
+          <label className="translation-style-label">
+            翻译风格
+          </label>
+          <select
+            value={activeTranslationStyle?.id || ''}
+            onChange={handleTranslationStyleChange}
+            className="translation-style-select"
+          >
+            {(translationStyles || []).map(style => (
+              <option key={style.id} value={style.id}>
+                {style.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+
+        <div className="button-group">
+          <button
+            onClick={handleToggleTranslation}
+            disabled={translationStatus === 'translating' || !activeAIConfig}
+            className="translate-button"
+          >
+            {translationStatus === 'translating' ? t('popup.translating') : getButtonText()}
+          </button>
+        </div>
+
+        <button
+          onClick={openSettings}
+          className="settings-button"
+        >
+          {t('popup.settings')}
+        </button>
+
         {/* AI Configuration Selection */}
         {(aiConfigs || []).length > 0 ? (
           <div className="ai-config-section">
@@ -174,74 +257,11 @@ const Popup: React.FC = () => {
           </div>
         )}
 
-        {/* Language Selection */}
-        <div className="language-selectors">
-          <select
-            value={config.sourceLang}
-            onChange={handleSourceLangChange}
-            className="language-select"
-          >
-            <option value="en">{t('settings.english')} →</option>
-            <option value="zh">{t('settings.chinese')} →</option>
-          </select>
-          <select
-            value={config.targetLang}
-            onChange={handleTargetLangChange}
-            className="language-select"
-          >
-            <option value="zh">{t('settings.chinese')}</option>
-            <option value="en">{t('settings.english')}</option>
-          </select>
-        </div>
-
-        {/* Translation Style Selection */}
-        <div className="translation-style-section">
-          <label className="translation-style-label">
-            翻译风格
-          </label>
-          <select
-            value={activeTranslationStyle?.id || ''}
-            onChange={handleTranslationStyleChange}
-            className="translation-style-select"
-          >
-            <option value="">默认风格</option>
-            {(translationStyles || []).map(style => (
-              <option key={style.id} value={style.id}>
-                {style.name} {style.isBuiltIn ? '(内置)' : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-
-
-        <div className="button-group">
-          <button
-            onClick={handleTranslatePage}
-            disabled={translationStatus === 'translating' || !activeAIConfig}
-            className="translate-button"
-          >
-            {translationStatus === 'translating' ? t('popup.translating') : t('popup.translatePage')}
-          </button>
-          <button
-            onClick={handleClearTranslations}
-            className="clear-button"
-          >
-            {t('popup.clear')}
-          </button>
-        </div>
-
-        <button
-          onClick={openSettings}
-          className="settings-button"
-        >
-          {t('popup.settings')}
-        </button>
       </div>
 
-      <div className={`status-section ${
-        statusInfo.type === 'success' ? 'status-success' :
-        statusInfo.type === 'error' ? 'status-error' : 'status-info'
-      }`}>
+      <div className={`status-section ${statusInfo.type === 'success' ? 'status-success' :
+          statusInfo.type === 'error' ? 'status-error' : 'status-info'
+        }`}>
         {statusInfo.message}
       </div>
     </div>

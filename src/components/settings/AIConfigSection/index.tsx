@@ -10,6 +10,7 @@ import {
   deleteAIConfigAtom,
   setActiveAIConfigAtom
 } from '../../../store';
+import './AIConfigSection.scss';
 
 interface AIConfigSectionProps {
   status: string;
@@ -54,14 +55,6 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
   const setActiveAIConfig = useSetAtom(setActiveAIConfigAtom);
 
   const { t } = useI18n();
-
-  // 莫兰迪紫色配色方案
-  const morandiPurple = '#8B7D9C';
-  const morandiLightPurple = '#E8E4F0';
-  const morandiDarkPurple = '#6B5B7A';
-  const textPrimary = '#333333';
-  const textSecondary = 'rgba(51, 51, 51, 0.7)';
-  const textTertiary = 'rgba(51, 51, 51, 0.5)';
 
   const handleNewConfigChange = (field: keyof typeof newConfig, value: string | boolean) => {
     setNewConfig(prev => ({
@@ -164,127 +157,68 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
   };
 
   return (
-    <div>
-      <h2 style={{
-        margin: '0 0 20px 0',
-        color: textPrimary,
-        fontSize: '24px',
-        fontWeight: '600'
-      }}>
+    <div className="ai-config-section">
+      <h2 className="section-header">
         {t('settings.aiConfigurations')}
       </h2>
 
       {/* Configuration List */}
-      <div style={{ marginBottom: '30px' }}>
-        <h3 style={{
-          margin: '0 0 15px 0',
-          color: textPrimary,
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
+      <div className="config-list">
+        <h3 className="subsection-header">
           {t('settings.yourConfigurations')}
         </h3>
 
         {(aiConfigs || []).length === 0 ? (
-          <div style={{
-            padding: '20px',
-            background: morandiLightPurple,
-            borderRadius: '8px',
-            textAlign: 'center',
-            color: textSecondary,
-            border: `1px solid ${morandiPurple}`
-          }}>
+          <div className="empty-state">
             {t('settings.noConfigurations')}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="configs-grid">
             {(aiConfigs || []).map(config => (
-              <div key={config.id} style={{
-                padding: '15px',
-                border: `2px solid ${config.isActive ? morandiPurple : morandiLightPurple}`,
-                borderRadius: '8px',
-                background: config.isActive ? morandiLightPurple : '#fff'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div
+                key={config.id}
+                className={`config-item ${config.isActive ? 'active' : ''}`}
+              >
+                <div className="config-header">
                   <div>
-                    <strong style={{ color: textPrimary }}>{config.name}</strong>
+                    <strong className="config-name">{config.name}</strong>
                     {config.isActive && (
-                      <span style={{
-                        marginLeft: '10px',
-                        padding: '2px 8px',
-                        background: morandiPurple,
-                        color: 'white',
-                        borderRadius: '12px',
-                        fontSize: '12px'
-                      }}>
+                      <span className="active-badge">
                         Active
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="action-buttons">
                     {!config.isActive && (
                       <button
                         onClick={() => handleSetActiveConfig(config.id)}
-                        style={{
-                          padding: '6px 12px',
-                          background: morandiPurple,
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          cursor: 'pointer'
-                        }}
+                        className="button primary small"
                       >
                         {t('settings.setActive')}
                       </button>
                     )}
                     <button
                       onClick={() => setEditingConfig(config)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#f8f9fa',
-                        color: textPrimary,
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
+                      className="button secondary small"
                     >
                       {t('common.edit')}
                     </button>
                     <button
                       onClick={() => testConnection(config)}
                       disabled={isTesting}
-                      style={{
-                        padding: '6px 12px',
-                        background: isTesting ? textTertiary : morandiPurple,
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        cursor: isTesting ? 'not-allowed' : 'pointer',
-                        opacity: isTesting ? 0.6 : 1
-                      }}
+                      className={`button primary small ${isTesting ? 'disabled' : ''}`}
                     >
                       {isTesting ? t('settings.testing') : t('common.test')}
                     </button>
                     <button
                       onClick={() => handleDeleteConfig(config.id)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
+                      className="button danger small"
                     >
                       {t('common.delete')}
                     </button>
                   </div>
                 </div>
-                <div style={{ fontSize: '14px', color: textSecondary }}>
+                <div className="config-details">
                   <div>Provider: {providerConfigs[config.provider]?.name}</div>
                   <div>Model: {config.model}</div>
                   <div>API URL: {config.apiUrl}</div>
@@ -296,24 +230,14 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
       </div>
 
       {/* Add/Edit Configuration Form */}
-      <div style={{
-        padding: '20px',
-        background: morandiLightPurple,
-        borderRadius: '8px',
-        border: `1px solid ${morandiPurple}`
-      }}>
-        <h3 style={{
-          margin: '0 0 15px 0',
-          color: textPrimary,
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
+      <div className="config-form">
+        <h3 className="subsection-header">
           {editingConfig ? t('settings.editConfiguration') : t('settings.addNewConfiguration')}
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.configurationName')}
             </label>
             <input
@@ -324,33 +248,19 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 : handleNewConfigChange('name', e.target.value)
               }
               placeholder="My DeepSeek Config"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-input"
               required
             />
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.aiProvider')}
             </label>
             <select
               value={editingConfig ? editingConfig.provider : newConfig.provider}
               onChange={(e) => handleProviderChange(e.target.value as AIConfig['provider'], !!editingConfig)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-select"
               required
             >
               <option value="deepseek">DeepSeek</option>
@@ -359,8 +269,8 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
             </select>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.apiUrl')}
             </label>
             <input
@@ -371,20 +281,13 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 : handleNewConfigChange('apiUrl', e.target.value)
               }
               placeholder="https://api.deepseek.com"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-input"
               required
             />
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.model')}
             </label>
             <select
@@ -393,14 +296,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 ? handleEditingConfigChange('model', e.target.value)
                 : handleNewConfigChange('model', e.target.value)
               }
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-select"
               required
             >
               <option value="">Select a model</option>
@@ -412,8 +308,8 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
             </select>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', color: textPrimary }}>
+          <div className="form-group">
+            <label className="form-label">
               {t('settings.apiKey')}
             </label>
             <input
@@ -424,48 +320,24 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 : handleNewConfigChange('apiKey', e.target.value)
               }
               placeholder="Enter your API key"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: `1px solid ${morandiPurple}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: '#fff'
-              }}
+              className="form-input"
               required
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="button-group">
             {editingConfig ? (
               <>
                 <button
                   onClick={handleUpdateConfig}
                   disabled={isSaving}
-                  style={{
-                    padding: '12px 24px',
-                    background: isSaving ? textTertiary : morandiPurple,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    cursor: isSaving ? 'not-allowed' : 'pointer',
-                    opacity: isSaving ? 0.6 : 1
-                  }}
+                  className={`button primary ${isSaving ? 'disabled' : ''}`}
                 >
                   {isSaving ? t('common.loading') : t('common.save')}
                 </button>
                 <button
                   onClick={() => setEditingConfig(null)}
-                  style={{
-                    padding: '12px 24px',
-                    background: '#f8f9fa',
-                    color: textPrimary,
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}
+                  className="button secondary"
                 >
                   {t('common.cancel')}
                 </button>
@@ -474,16 +346,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
               <button
                 onClick={handleAddConfig}
                 disabled={isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey}
-                style={{
-                  padding: '12px 24px',
-                  background: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? textTertiary : morandiPurple,
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 'not-allowed' : 'pointer',
-                  opacity: isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 0.6 : 1
-                }}
+                className={`button primary ${isSaving || !newConfig.name || !newConfig.apiUrl || !newConfig.model || !newConfig.apiKey ? 'disabled' : ''}`}
               >
                 {isSaving ? t('common.loading') : t('settings.addNewConfiguration')}
               </button>

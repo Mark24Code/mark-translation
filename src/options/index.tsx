@@ -36,6 +36,7 @@ import LanguageSettingsSection from '../components/settings/LanguageSettingsSect
 import TranslationStylesSection from '../components/settings/TranslationStylesSection';
 import BackupSection from '../components/settings/BackupSection/index';
 import HelpSection from '../components/settings/HelpSection';
+import './options.scss';
 
 const Options: React.FC = () => {
   const aiConfigs = useAtomValue(aiConfigsAtom);
@@ -522,21 +523,7 @@ const Options: React.FC = () => {
     >
       {/* 状态显示 */}
       {status && (
-        <div
-          style={{
-            marginBottom: '20px',
-            padding: '12px',
-            borderRadius: '8px',
-            fontSize: '14px',
-            background: statusType === 'success' ? '#d4edda' :
-                       statusType === 'error' ? '#f8d7da' : '#d1ecf1',
-            color: statusType === 'success' ? '#155724' :
-                  statusType === 'error' ? '#721c24' : '#0c5460',
-            border: `1px solid ${statusType === 'success' ? '#c3e6cb' :
-                             statusType === 'error' ? '#f5c6cb' : '#bee5eb'}`,
-            lineHeight: '1.5'
-          }}
-        >
+        <div className={`status-message status-${statusType}`}>
           {status}
         </div>
       )}

@@ -1,0 +1,76 @@
+// BackupSection Styles
+.backup-section {
+  // Color variables
+  $morandi-purple: #8B7D9C;
+  $morandi-light-purple: #E8E4F0;
+  $text-primary: #333333;
+  $text-secondary: rgba(51, 51, 51, 0.7);
+
+  .section-header {
+    margin: 0 0 20px 0;
+    color: $text-primary;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .backup-container {
+    padding: 20px;
+    background: $morandi-light-purple;
+    border-radius: 8px;
+    border: 1px solid $morandi-purple;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.primary {
+      background: $morandi-purple;
+      color: white;
+
+      &:hover {
+        background: darken($morandi-purple, 10%);
+      }
+    }
+
+    &.secondary {
+      background: #f8f9fa;
+      color: $text-primary;
+      border: 1px solid #ddd;
+
+      &:hover {
+        background: #e9ecef;
+      }
+    }
+  }
+
+  .file-input-label {
+    padding: 12px 24px;
+    background: $morandi-purple;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-block;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: darken($morandi-purple, 10%);
+    }
+  }
+
+  .file-input {
+    display: none;
+  }
+}

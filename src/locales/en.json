@@ -91,6 +91,7 @@
     "noAiConfigurations": "No AI configurations found",
     "addConfiguration": "Add Configuration",
     "translatePage": "Translate Page",
+    "showOriginal": "Show Original",
     "clear": "Clear",
     "settings": "Settings",
     "noActiveConfiguration": "⚠️ No active AI configuration",

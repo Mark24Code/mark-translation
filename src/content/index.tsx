@@ -2,6 +2,7 @@
 // import { createRoot } from 'react-dom/client';
 import { TranslationConfig } from '../shared/types';
 import { createMatchingEngine } from '../shared/matching-engine';
+import { PARALLEL_TASKS_DEFAULT } from '../constants';
 import './content.scss';
 
 // 获取语言设置的辅助函数
@@ -316,7 +317,7 @@ class TranslationManager {
       }
 
       // 使用配置的并行任务数量进行并发翻译
-      const parallelLimit = this.config.parallelTasks || 6;
+      const parallelLimit = this.config.parallelTasks || PARALLEL_TASKS_DEFAULT;
       // console.log(`Using parallel limit: ${parallelLimit}`);
 
       await this.processTranslationBatch(translationTasks, parallelLimit);
@@ -620,7 +621,7 @@ class ScrollTranslationManager extends TranslationManager {
       }));
 
       // 并发翻译
-      const parallelLimit = this.config.parallelTasks || 3;
+      const parallelLimit = this.config.parallelTasks || PARALLEL_TASKS_DEFAULT;
       await this.processTranslationBatch(tasks, parallelLimit);
 
       // 继续处理队列中的剩余任务

@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
 import { AIConfig, TranslationConfig, TranslationStyle } from '../shared/types';
 import { StorageManager } from '../utils/storage';
+import { PARALLEL_TASKS_DEFAULT } from '../constants';
 
 // AI 配置列表
 export const aiConfigsAtom = atom<AIConfig[]>([]);
@@ -13,7 +14,7 @@ export const translationConfigAtom = atom<TranslationConfig>({
   sourceLang: 'en',
   targetLang: 'zh',
   autoTranslate: false,
-  parallelTasks: 6,
+  parallelTasks: PARALLEL_TASKS_DEFAULT,
   activeAIConfigId: null,
   activeTranslationStyleId: null
 });
@@ -332,7 +333,7 @@ export const resetConfigsAtom = atom(
         sourceLang: 'en',
         targetLang: 'zh',
         autoTranslate: false,
-        parallelTasks: 6,
+        parallelTasks: PARALLEL_TASKS_DEFAULT,
         activeAIConfigId: null,
         activeTranslationStyleId: null
       });

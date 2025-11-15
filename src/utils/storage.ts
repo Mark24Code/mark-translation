@@ -1,4 +1,5 @@
 import { AIConfig, TranslationConfig, AppConfig, TranslationStyle } from '../shared/types';
+import { PARALLEL_TASKS_DEFAULT } from '../constants';
 
 export class StorageManager {
   static async getAppConfig(): Promise<AppConfig> {
@@ -15,7 +16,7 @@ export class StorageManager {
               sourceLang: 'en',
               targetLang: 'zh',
               autoTranslate: false,
-              parallelTasks: 6,
+              parallelTasks: PARALLEL_TASKS_DEFAULT,
               activeAIConfigId: null,
               activeTranslationStyleId: null
             },

@@ -259,11 +259,11 @@ const Popup: React.FC = () => {
 
       </div>
 
-      <div className={`status-section ${statusInfo.type === 'success' ? 'status-success' :
+      {/* <div className={`status-section ${statusInfo.type === 'success' ? 'status-success' :
           statusInfo.type === 'error' ? 'status-error' : 'status-info'
         }`}>
         {statusInfo.message}
-      </div>
+      </div> */}
     </div>
   );
 };

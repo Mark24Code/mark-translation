@@ -13,7 +13,7 @@ export const activeAIConfigAtom = atom<AIConfig | null>(null);
 export const translationConfigAtom = atom<TranslationConfig>({
   sourceLang: 'en',
   targetLang: 'zh',
-  autoTranslate: false,
+  autoTranslate: true,
   parallelTasks: PARALLEL_TASKS_DEFAULT,
   activeAIConfigId: null,
   activeTranslationStyleId: null
@@ -332,7 +332,7 @@ export const resetConfigsAtom = atom(
       set(translationConfigAtom, {
         sourceLang: 'en',
         targetLang: 'zh',
-        autoTranslate: false,
+        autoTranslate: true,
         parallelTasks: PARALLEL_TASKS_DEFAULT,
         activeAIConfigId: null,
         activeTranslationStyleId: null

@@ -167,66 +167,59 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
         <h3 className="subsection-header">
           {t('settings.yourConfigurations')}
         </h3>
-
-        {(aiConfigs || []).length === 0 ? (
-          <div className="empty-state">
-            {t('settings.noConfigurations')}
-          </div>
-        ) : (
-          <div className="configs-grid">
-            {(aiConfigs || []).map(config => (
-              <div
-                key={config.id}
-                className={`config-item ${config.isActive ? 'active' : ''}`}
-              >
-                <div className="config-header">
-                  <div>
-                    <strong className="config-name">{config.name}</strong>
-                    {config.isActive && (
-                      <span className="active-badge">
-                        Active
-                      </span>
-                    )}
-                  </div>
-                  <div className="action-buttons">
-                    {!config.isActive && (
-                      <button
-                        onClick={() => handleSetActiveConfig(config.id)}
-                        className="button primary small"
-                      >
-                        {t('settings.setActive')}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setEditingConfig(config)}
-                      className="button secondary small"
-                    >
-                      {t('common.edit')}
-                    </button>
-                    <button
-                      onClick={() => testConnection(config)}
-                      disabled={isTesting}
-                      className={`button primary small ${isTesting ? 'disabled' : ''}`}
-                    >
-                      {isTesting ? t('settings.testing') : t('common.test')}
-                    </button>
-                    <button
-                      onClick={() => handleDeleteConfig(config.id)}
-                      className="button danger small"
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </div>
+        <div className="configs-grid">
+          {(aiConfigs || []).map(config => (
+            <div
+              key={config.id}
+              className={`config-item ${config.isActive ? 'active' : ''}`}
+            >
+              <div className="config-header">
+                <div>
+                  <strong className="config-name">{config.name}</strong>
+                  {config.isActive && (
+                    <span className="active-badge">
+                      Active
+                    </span>
+                  )}
                 </div>
-                <div className="config-details">
-                  <div>Provider: {providerConfigs[config.provider]?.name}</div>
-                  <div>Model: {config.model}</div>
-                  <div>API URL: {config.apiUrl}</div>
+                <div className="action-buttons">
+                  {!config.isActive && (
+                    <button
+                      onClick={() => handleSetActiveConfig(config.id)}
+                      className="button primary small"
+                    >
+                      {t('settings.setActive')}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setEditingConfig(config)}
+                    className="button secondary small"
+                  >
+                    {t('common.edit')}
+                  </button>
+                  <button
+                    onClick={() => testConnection(config)}
+                    disabled={isTesting}
+                    className={`button primary small ${isTesting ? 'disabled' : ''}`}
+                  >
+                    {isTesting ? t('settings.testing') : t('common.test')}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteConfig(config.id)}
+                    className="button danger small"
+                  >
+                    {t('common.delete')}
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="config-details">
+                <div>Provider: {providerConfigs[config.provider]?.name}</div>
+                <div>Model: {config.model}</div>
+                <div>API URL: {config.apiUrl}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Add/Edit Configuration Form */}

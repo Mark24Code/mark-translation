@@ -36,6 +36,7 @@ import LanguageSettingsSection from '../components/settings/LanguageSettingsSect
 import TranslationStylesSection from '../components/settings/TranslationStylesSection';
 import BackupSection from '../components/settings/BackupSection/index';
 import HelpSection from '../components/settings/HelpSection';
+import './base.scss';
 import './options.scss';
 
 const Options: React.FC = () => {
@@ -521,14 +522,6 @@ const Options: React.FC = () => {
       activeSection={activeSection}
       onSectionChange={setActiveSection}
     >
-      {/* 状态显示 */}
-      {status && (
-        <div className={`status-message status-${statusType}`}>
-          {status}
-        </div>
-      )}
-
-      {/* 当前活动部分 */}
       {renderActiveSection()}
     </SettingsLayout>
   );

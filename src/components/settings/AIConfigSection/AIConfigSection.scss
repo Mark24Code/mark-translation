@@ -79,6 +79,7 @@
   }
 
   .config-form {
+    max-width: 500px;
     padding: 20px;
     background: $morandi-light-purple;
     border-radius: 8px;
@@ -122,6 +123,7 @@
   .button-group {
     display: flex;
     gap: 10px;
+    justify-content: center;
   }
 
   .button {

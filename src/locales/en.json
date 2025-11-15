@@ -83,7 +83,8 @@
     "translationStyleAdded": "Translation style added",
     "translationStyleUpdated": "Translation style updated",
     "translationStyleDeleted": "Translation style deleted",
-    "activeTranslationStyleUpdated": "Active translation style updated"
+    "activeTranslationStyleUpdated": "Active translation style updated",
+    "activeConfigurationUpdated": "Active configuration updated"
   },
   "popup": {
     "title": "Mark Translation",

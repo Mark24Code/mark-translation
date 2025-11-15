@@ -15,7 +15,7 @@ export class StorageManager {
             translationConfig: {
               sourceLang: 'en',
               targetLang: 'zh',
-              autoTranslate: false,
+              autoTranslate: true,
               parallelTasks: PARALLEL_TASKS_DEFAULT,
               activeAIConfigId: null,
               activeTranslationStyleId: null

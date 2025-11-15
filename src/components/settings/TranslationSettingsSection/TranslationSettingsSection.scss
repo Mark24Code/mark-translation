@@ -33,6 +33,10 @@
     color: $text-primary;
   }
 
+  input[type="checkbox"]{
+    width: auto;
+  }
+
   .form-input {
     width: 100%;
     padding: 10px;

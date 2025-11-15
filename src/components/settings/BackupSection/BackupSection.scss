@@ -24,8 +24,13 @@
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
   }
 
+  .file-input-label {
+    margin: 0;
+    font-weight: normal;
+  }
   .button {
     padding: 12px 24px;
     border: none;
@@ -33,6 +38,10 @@
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-family: inherit;
+    line-height: 1;
+    min-height: 42px;
+    box-sizing: border-box;
 
     &.primary {
       background: $morandi-purple;
@@ -62,8 +71,14 @@
     border-radius: 6px;
     font-size: 14px;
     cursor: pointer;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
+    font-family: inherit;
+    line-height: 1;
+    min-height: 42px;
+    box-sizing: border-box;
 
     &:hover {
       background: darken($morandi-purple, 10%);

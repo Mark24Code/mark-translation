@@ -16,12 +16,12 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
   const { t } = useI18n();
 
   const sections = [
-    { id: 'ai-config', label: t('settings.aiConfigurations'), icon: '🤖' },
-    { id: 'translation', label: t('settings.translationSettings'), icon: '🌐' },
-    { id: 'styles', label: t('settings.translationStyles'), icon: '🎨' },
-    { id: 'language', label: t('settings.languageSettings'), icon: '🌍' },
-    { id: 'backup', label: t('settings.backupRestore'), icon: '💾' },
-    { id: 'help', label: t('settings.gettingStarted'), icon: '❓' }
+    { id: 'ai-config', label: t('settings.aiConfigurations'), icon: '' },
+    { id: 'translation', label: t('settings.translationSettings'), icon: '' },
+    { id: 'styles', label: t('settings.translationStyles'), icon: '' },
+    { id: 'language', label: t('settings.languageSettings'), icon: '' },
+    { id: 'backup', label: t('settings.backupRestore'), icon: '' },
+    { id: 'help', label: t('settings.gettingStarted'), icon: '' }
   ];
 
   return (

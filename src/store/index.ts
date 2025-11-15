@@ -1,61 +1,31 @@
 import { atom } from 'jotai';
-import { AIConfig, TranslationConfig, AppConfig, TranslationStyle } from '../shared/types';
+import { AIConfig, TranslationConfig, TranslationStyle } from '../shared/types';
 import { StorageManager } from '../utils/storage';
 
-// 应用配置状态 - 使用 StorageManager 而不是 atomWithStorage 以确保 Firefox 兼容性
-export const appConfigAtom = atom<AppConfig>({
-  aiConfigs: [],
-  translationConfig: {
-    sourceLang: 'en',
-    targetLang: 'zh',
-    autoTranslate: false,
-    parallelTasks: 6,
-    activeAIConfigId: null,
-    activeTranslationStyleId: null
-  },
-  translationStyles: [],
-  language: 'zh'
-});
-
 // AI 配置列表
-export const aiConfigsAtom = atom(
-  (get) => get(appConfigAtom).aiConfigs
-);
+export const aiConfigsAtom = atom<AIConfig[]>([]);
 
 // 激活的 AI 配置
-export const activeAIConfigAtom = atom(
-  (get) => {
-    const appConfig = get(appConfigAtom);
-    const activeConfig = appConfig.aiConfigs.find(config => config.isActive);
-    return activeConfig || (appConfig.aiConfigs.length > 0 ? appConfig.aiConfigs[0] : null);
-  }
-);
+export const activeAIConfigAtom = atom<AIConfig | null>(null);
 
 // 翻译配置
-export const translationConfigAtom = atom(
-  (get) => get(appConfigAtom).translationConfig
-);
+export const translationConfigAtom = atom<TranslationConfig>({
+  sourceLang: 'en',
+  targetLang: 'zh',
+  autoTranslate: false,
+  parallelTasks: 6,
+  activeAIConfigId: null,
+  activeTranslationStyleId: null
+});
 
 // 语言配置
-export const languageAtom = atom(
-  (get) => get(appConfigAtom).language
-);
+export const languageAtom = atom<'zh' | 'en'>('zh');
 
 // 翻译风格列表
-export const translationStylesAtom = atom(
-  (get) => get(appConfigAtom).translationStyles
-);
+export const translationStylesAtom = atom<TranslationStyle[]>([]);
 
 // 激活的翻译风格
-export const activeTranslationStyleAtom = atom(
-  (get) => {
-    const appConfig = get(appConfigAtom);
-    const activeStyleId = appConfig.translationConfig.activeTranslationStyleId;
-    if (!activeStyleId) return null;
-
-    return appConfig.translationStyles.find(style => style.id === activeStyleId) || null;
-  }
-);
+export const activeTranslationStyleAtom = atom<TranslationStyle | null>(null);
 
 // 翻译状态
 export const translationStatusAtom = atom<'idle' | 'translating' | 'success' | 'error'>('idle');
@@ -83,7 +53,23 @@ export const loadConfigsAtom = atom(
   async (get, set) => {
     try {
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 设置各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+      set(translationConfigAtom, appConfig.translationConfig);
+      set(languageAtom, appConfig.language);
+      set(translationStylesAtom, appConfig.translationStyles);
+
+      // 设置激活的 AI 配置
+      const activeAIConfig = appConfig.aiConfigs.find(config => config.isActive) ||
+                           (appConfig.aiConfigs.length > 0 ? appConfig.aiConfigs[0] : null);
+      set(activeAIConfigAtom, activeAIConfig);
+
+      // 设置激活的翻译风格
+      const activeStyleId = appConfig.translationConfig.activeTranslationStyleId;
+      const activeTranslationStyle = activeStyleId ?
+        appConfig.translationStyles.find(style => style.id === activeStyleId) || null : null;
+      set(activeTranslationStyleAtom, activeTranslationStyle);
 
       // 初始化 i18n 管理器
       const { I18nManager } = await import('../utils/i18n');
@@ -95,20 +81,6 @@ export const loadConfigsAtom = atom(
   }
 );
 
-// 保存应用配置的导出器
-export const saveAppConfigAtom = atom(
-  null,
-  async (get, set, appConfig: AppConfig) => {
-    try {
-      await StorageManager.setAppConfig(appConfig);
-      set(appConfigAtom, appConfig);
-    } catch (error) {
-      console.error('Failed to save config:', error);
-      set(errorMessageAtom, 'Failed to save settings');
-    }
-  }
-);
-
 // 添加 AI 配置的导出器
 export const addAIConfigAtom = atom(
   null,
@@ -116,7 +88,15 @@ export const addAIConfigAtom = atom(
     try {
       const configId = await StorageManager.addAIConfig(config);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+
+      // 如果是第一个配置，自动设置为激活
+      if (appConfig.aiConfigs.length === 1) {
+        set(activeAIConfigAtom, appConfig.aiConfigs[0]);
+      }
+
       return configId;
     } catch (error) {
       console.error('Failed to add AI config:', error);
@@ -133,7 +113,18 @@ export const updateAIConfigAtom = atom(
     try {
       await StorageManager.updateAIConfig(configId, updates);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+
+      // 如果更新的是当前激活的配置，也更新 activeAIConfigAtom
+      const currentActive = get(activeAIConfigAtom);
+      if (currentActive && currentActive.id === configId) {
+        const updatedConfig = appConfig.aiConfigs.find(c => c.id === configId);
+        if (updatedConfig) {
+          set(activeAIConfigAtom, updatedConfig);
+        }
+      }
     } catch (error) {
       console.error('Failed to update AI config:', error);
       set(errorMessageAtom, 'Failed to update AI configuration');
@@ -149,7 +140,17 @@ export const deleteAIConfigAtom = atom(
     try {
       await StorageManager.deleteAIConfig(configId);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+
+      // 如果删除的是当前激活的配置，重新设置激活配置
+      const currentActive = get(activeAIConfigAtom);
+      if (currentActive && currentActive.id === configId) {
+        const newActive = appConfig.aiConfigs.find(config => config.isActive) ||
+                        (appConfig.aiConfigs.length > 0 ? appConfig.aiConfigs[0] : null);
+        set(activeAIConfigAtom, newActive);
+      }
     } catch (error) {
       console.error('Failed to delete AI config:', error);
       set(errorMessageAtom, 'Failed to delete AI configuration');
@@ -165,7 +166,12 @@ export const setActiveAIConfigAtom = atom(
     try {
       await StorageManager.setActiveAIConfig(configId);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+
+      const activeConfig = appConfig.aiConfigs.find(config => config.id === configId);
+      set(activeAIConfigAtom, activeConfig || null);
     } catch (error) {
       console.error('Failed to set active AI config:', error);
       set(errorMessageAtom, 'Failed to set active configuration');
@@ -181,7 +187,18 @@ export const setActiveTranslationStyleAtom = atom(
     try {
       await StorageManager.setActiveTranslationStyle(styleId);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 只更新翻译配置中的 activeTranslationStyleId
+      const currentConfig = get(translationConfigAtom);
+      const updatedConfig = {
+        ...currentConfig,
+        activeTranslationStyleId: styleId
+      };
+      set(translationConfigAtom, updatedConfig);
+
+      const activeStyle = styleId ?
+        appConfig.translationStyles.find(style => style.id === styleId) || null : null;
+      set(activeTranslationStyleAtom, activeStyle);
     } catch (error) {
       console.error('Failed to set active translation style:', error);
       set(errorMessageAtom, 'Failed to set active translation style');
@@ -197,7 +214,10 @@ export const addTranslationStyleAtom = atom(
     try {
       const styleId = await StorageManager.addTranslationStyle(style);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(translationStylesAtom, appConfig.translationStyles);
+
       return styleId;
     } catch (error) {
       console.error('Failed to add translation style:', error);
@@ -214,7 +234,18 @@ export const updateTranslationStyleAtom = atom(
     try {
       await StorageManager.updateTranslationStyle(styleId, updates);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(translationStylesAtom, appConfig.translationStyles);
+
+      // 如果更新的是当前激活的风格，也更新 activeTranslationStyleAtom
+      const currentActive = get(activeTranslationStyleAtom);
+      if (currentActive && currentActive.id === styleId) {
+        const updatedStyle = appConfig.translationStyles.find(s => s.id === styleId);
+        if (updatedStyle) {
+          set(activeTranslationStyleAtom, updatedStyle);
+        }
+      }
     } catch (error) {
       console.error('Failed to update translation style:', error);
       set(errorMessageAtom, 'Failed to update translation style');
@@ -230,7 +261,15 @@ export const deleteTranslationStyleAtom = atom(
     try {
       await StorageManager.deleteTranslationStyle(styleId);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新各个独立的 atom
+      set(translationStylesAtom, appConfig.translationStyles);
+
+      // 如果删除的是当前激活的风格，清除激活状态
+      const currentActive = get(activeTranslationStyleAtom);
+      if (currentActive && currentActive.id === styleId) {
+        set(activeTranslationStyleAtom, null);
+      }
     } catch (error) {
       console.error('Failed to delete translation style:', error);
       set(errorMessageAtom, 'Failed to delete translation style');
@@ -247,8 +286,9 @@ export const updateTranslationConfigAtom = atom(
       const currentConfig = get(translationConfigAtom);
       const newConfig = { ...currentConfig, ...updates };
       await StorageManager.setTranslationConfig(newConfig);
-      const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新独立的 atom
+      set(translationConfigAtom, newConfig);
     } catch (error) {
       console.error('Failed to update translation config:', error);
       set(errorMessageAtom, 'Failed to update translation settings');
@@ -263,8 +303,9 @@ export const updateLanguageAtom = atom(
   async (get, set, language: 'zh' | 'en') => {
     try {
       await StorageManager.setLanguage(language);
-      const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 更新独立的 atom
+      set(languageAtom, language);
 
       // 更新 i18n 管理器
       const { I18nManager } = await import('../utils/i18n');
@@ -283,20 +324,21 @@ export const resetConfigsAtom = atom(
   async (get, set) => {
     try {
       await StorageManager.clearConfig();
-      const defaultConfig = {
-        aiConfigs: [],
-        translationConfig: {
-          sourceLang: 'en',
-          targetLang: 'zh',
-          autoTranslate: false,
-          parallelTasks: 6,
-          activeAIConfigId: null,
-          activeTranslationStyleId: null
-        },
-        translationStyles: [],
-        language: 'zh'
-      };
-      set(appConfigAtom, defaultConfig);
+
+      // 重置各个独立的 atom
+      set(aiConfigsAtom, []);
+      set(activeAIConfigAtom, null);
+      set(translationConfigAtom, {
+        sourceLang: 'en',
+        targetLang: 'zh',
+        autoTranslate: false,
+        parallelTasks: 6,
+        activeAIConfigId: null,
+        activeTranslationStyleId: null
+      });
+      set(languageAtom, 'zh');
+      set(translationStylesAtom, []);
+      set(activeTranslationStyleAtom, null);
       set(errorMessageAtom, null);
 
       // 重置 i18n 管理器
@@ -330,7 +372,23 @@ export const importConfigsAtom = atom(
     try {
       await StorageManager.importConfig(configJson);
       const appConfig = await StorageManager.getAppConfig();
-      set(appConfigAtom, appConfig);
+
+      // 设置各个独立的 atom
+      set(aiConfigsAtom, appConfig.aiConfigs);
+      set(translationConfigAtom, appConfig.translationConfig);
+      set(languageAtom, appConfig.language);
+      set(translationStylesAtom, appConfig.translationStyles);
+
+      // 设置激活的 AI 配置
+      const activeAIConfig = appConfig.aiConfigs.find(config => config.isActive) ||
+                           (appConfig.aiConfigs.length > 0 ? appConfig.aiConfigs[0] : null);
+      set(activeAIConfigAtom, activeAIConfig);
+
+      // 设置激活的翻译风格
+      const activeStyleId = appConfig.translationConfig.activeTranslationStyleId;
+      const activeTranslationStyle = activeStyleId ?
+        appConfig.translationStyles.find(style => style.id === activeStyleId) || null : null;
+      set(activeTranslationStyleAtom, activeTranslationStyle);
     } catch (error) {
       console.error('Failed to import configs:', error);
       set(errorMessageAtom, 'Failed to import settings');

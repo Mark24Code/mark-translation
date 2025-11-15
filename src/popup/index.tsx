@@ -192,7 +192,7 @@ const Popup: React.FC = () => {
         {/* Translation Style Selection */}
         <div className="translation-style-section">
           <label className="translation-style-label">
-            翻译风格
+            {t('settings.translationStyles')}
           </label>
           <select
             value={activeTranslationStyle?.id || ''}

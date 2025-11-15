@@ -29,12 +29,12 @@ import {
 } from '../store';
 
 // 导入新的布局和组件
-import SettingsLayout from '../components/SettingsLayout';
-import AIConfigSection from '../components/settings/AIConfigSection';
+import SettingsLayout from '../components/SettingsLayout/index';
+import AIConfigSection from '../components/settings/AIConfigSection/index';
 import TranslationSettingsSection from '../components/settings/TranslationSettingsSection';
 import LanguageSettingsSection from '../components/settings/LanguageSettingsSection';
 import TranslationStylesSection from '../components/settings/TranslationStylesSection';
-import BackupSection from '../components/settings/BackupSection';
+import BackupSection from '../components/settings/BackupSection/index';
 import HelpSection from '../components/settings/HelpSection';
 
 const Options: React.FC = () => {

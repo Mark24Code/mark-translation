@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { AIConfig } from '../../shared/types';
-import { useI18n } from '../../utils/i18n';
+import { AIConfig } from '../../../shared/types';
+import { useI18n } from '../../../utils/i18n';
 import {
   aiConfigsAtom,
   activeAIConfigAtom,
@@ -9,7 +9,7 @@ import {
   updateAIConfigAtom,
   deleteAIConfigAtom,
   setActiveAIConfigAtom
-} from '../../store';
+} from '../../../store';
 
 interface AIConfigSectionProps {
   status: string;

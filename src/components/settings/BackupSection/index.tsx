@@ -1,11 +1,11 @@
 import React from 'react';
 import { useSetAtom } from 'jotai';
-import { useI18n } from '../../utils/i18n';
+import { useI18n } from '../../../utils/i18n';
 import {
   exportConfigsAtom,
   importConfigsAtom,
   resetConfigsAtom
-} from '../../store';
+} from '../../../store';
 
 interface BackupSectionProps {
   status: string;

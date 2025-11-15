@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { TranslationStyle } from '../../shared/types';
-import { useI18n } from '../../utils/i18n';
+import { TranslationStyle } from '../../../shared/types';
+import { useI18n } from '../../../utils/i18n';
 import {
   translationStylesAtom,
   activeTranslationStyleAtom,
@@ -9,7 +9,7 @@ import {
   updateTranslationStyleAtom,
   deleteTranslationStyleAtom,
   setActiveTranslationStyleAtom
-} from '../../store';
+} from '../../../store';
 
 interface TranslationStylesSectionProps {
   status: string;

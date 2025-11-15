@@ -4,7 +4,9 @@
   "description": "A browser extension for Chinese-English translation",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode chrome",
+    "dev:chrome": "vite --mode chrome",
+    "dev:firefox": "vite --mode firefox",
     "build": "npm run build:chrome",
     "preview": "vite preview",
     "build:firefox": "vite build --mode firefox && node scripts/post-build.js firefox",
@@ -32,6 +34,7 @@
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "sass": "^1.94.0",
     "sharp": "^0.34.5",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",

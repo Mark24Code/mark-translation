@@ -1,0 +1,188 @@
+// Popup 组件样式
+.popup-container {
+  width: 300px;
+  padding: 16px;
+}
+
+.popup-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.popup-title {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// AI 配置选择器
+.ai-config-section {
+  margin-bottom: 8px;
+}
+
+.ai-config-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.ai-config-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+// 语言选择器
+.language-selectors {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-select {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+// 翻译风格选择器
+.translation-style-section {
+  margin-bottom: 8px;
+}
+
+.translation-style-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.translation-style-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+// 按钮区域
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.translate-button {
+  flex: 1;
+  padding: 10px;
+  background: #007acc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &:hover:not(:disabled) {
+    background: #005a9e;
+  }
+}
+
+.clear-button {
+  flex: 1;
+  padding: 10px;
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: #e0e0e0;
+  }
+}
+
+.settings-button {
+  padding: 8px;
+  background: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f8f9fa;
+  }
+}
+
+// 警告区域
+.warning-section {
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.warning-text {
+  font-size: 12px;
+  color: #856404;
+  margin-bottom: 8px;
+}
+
+.add-config-button {
+  padding: 6px 12px;
+  background: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    background: #005a9e;
+  }
+}
+
+// 状态显示区域
+.status-section {
+  margin-top: 12px;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.status-info {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-error {
+  background: #f8d7da;
+  color: #721c24;
+}

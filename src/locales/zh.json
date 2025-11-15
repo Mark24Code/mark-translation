@@ -17,7 +17,7 @@
     "no": "否"
   },
   "app": {
-    "title": "Mark 翻译",
+    "title": "闪译",
     "description": "使用 AI 模型进行中英翻译的浏览器扩展"
   },
   "settings": {
@@ -86,7 +86,7 @@
     "activeTranslationStyleUpdated": "激活的翻译风格已更新"
   },
   "popup": {
-    "title": "Mark 翻译",
+    "title": "闪译",
     "aiConfiguration": "AI 配置",
     "noAiConfigurations": "未找到 AI 配置",
     "addConfiguration": "添加配置",

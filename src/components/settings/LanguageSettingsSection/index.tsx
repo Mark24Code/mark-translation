@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useI18n } from '../../utils/i18n';
-import { languageAtom, updateLanguageAtom } from '../../store';
+import { useI18n } from '../../../utils/i18n';
+import { languageAtom, updateLanguageAtom } from '../../../store';
 
 interface LanguageSettingsSectionProps {
   // 可以添加其他需要的props

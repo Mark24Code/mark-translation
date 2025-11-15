@@ -17,6 +17,7 @@ import {
   setActiveTranslationStyleAtom
 } from '../store';
 import { useI18n } from '../utils/i18n';
+import './popup.scss';
 
 const Popup: React.FC = () => {
   const [config, setConfig] = useAtom(translationConfigAtom);
@@ -135,22 +136,22 @@ const Popup: React.FC = () => {
   };
 
   return (
-    <div style={{ width: '300px', padding: '16px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ margin: 0, fontSize: '18px', color: '#333' }}>{t('popup.title')}</h1>
+    <div className="popup-container">
+      <div className="popup-header">
+        <h1 className="popup-title">{t('popup.title')}</h1>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="popup-content">
         {/* AI Configuration Selection */}
         {(aiConfigs || []).length > 0 ? (
-          <div>
-            <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
+          <div className="ai-config-section">
+            <label className="ai-config-label">
               {t('popup.aiConfiguration')}
             </label>
             <select
               value={activeAIConfig?.id || ''}
               onChange={handleAIConfigChange}
-              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+              className="ai-config-select"
             >
               {(aiConfigs || []).map(config => (
                 <option key={config.id} value={config.id}>
@@ -160,27 +161,13 @@ const Popup: React.FC = () => {
             </select>
           </div>
         ) : (
-          <div style={{
-            padding: '12px',
-            background: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            borderRadius: '4px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '12px', color: '#856404', marginBottom: '8px' }}>
+          <div className="warning-section">
+            <div className="warning-text">
               {t('popup.noAiConfigurations')}
             </div>
             <button
               onClick={openSettings}
-              style={{
-                padding: '6px 12px',
-                background: '#007acc',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
+              className="add-config-button"
             >
               {t('popup.addConfiguration')}
             </button>
@@ -188,11 +175,11 @@ const Popup: React.FC = () => {
         )}
 
         {/* Language Selection */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="language-selectors">
           <select
             value={config.sourceLang}
             onChange={handleSourceLangChange}
-            style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            className="language-select"
           >
             <option value="en">{t('settings.english')} →</option>
             <option value="zh">{t('settings.chinese')} →</option>
@@ -200,7 +187,7 @@ const Popup: React.FC = () => {
           <select
             value={config.targetLang}
             onChange={handleTargetLangChange}
-            style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            className="language-select"
           >
             <option value="zh">{t('settings.chinese')}</option>
             <option value="en">{t('settings.english')}</option>
@@ -208,14 +195,14 @@ const Popup: React.FC = () => {
         </div>
 
         {/* Translation Style Selection */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', color: '#666', fontWeight: '500' }}>
+        <div className="translation-style-section">
+          <label className="translation-style-label">
             翻译风格
           </label>
           <select
             value={activeTranslationStyle?.id || ''}
             onChange={handleTranslationStyleChange}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px' }}
+            className="translation-style-select"
           >
             <option value="">默认风格</option>
             {(translationStyles || []).map(style => (
@@ -227,36 +214,17 @@ const Popup: React.FC = () => {
         </div>
 
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="button-group">
           <button
             onClick={handleTranslatePage}
             disabled={translationStatus === 'translating' || !activeAIConfig}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: translationStatus === 'translating' || !activeAIConfig ? '#6c757d' : '#007acc',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: translationStatus === 'translating' || !activeAIConfig ? 'not-allowed' : 'pointer',
-              opacity: translationStatus === 'translating' || !activeAIConfig ? 0.6 : 1
-            }}
+            className="translate-button"
           >
             {translationStatus === 'translating' ? t('popup.translating') : t('popup.translatePage')}
           </button>
           <button
             onClick={handleClearTranslations}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: '#f5f5f5',
-              color: '#333',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
+            className="clear-button"
           >
             {t('popup.clear')}
           </button>
@@ -264,33 +232,16 @@ const Popup: React.FC = () => {
 
         <button
           onClick={openSettings}
-          style={{
-            padding: '8px',
-            background: 'transparent',
-            color: '#666',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}
+          className="settings-button"
         >
           {t('popup.settings')}
         </button>
       </div>
 
-      <div
-        style={{
-          marginTop: '12px',
-          padding: '8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          textAlign: 'center',
-          background: statusInfo.type === 'success' ? '#d4edda' :
-                     statusInfo.type === 'error' ? '#f8d7da' : '#d1ecf1',
-          color: statusInfo.type === 'success' ? '#155724' :
-                statusInfo.type === 'error' ? '#721c24' : '#0c5460'
-        }}
-      >
+      <div className={`status-section ${
+        statusInfo.type === 'success' ? 'status-success' :
+        statusInfo.type === 'error' ? 'status-error' : 'status-info'
+      }`}>
         {statusInfo.message}
       </div>
     </div>

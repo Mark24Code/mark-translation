@@ -1,5 +1,5 @@
 import React from 'react';
-import { useI18n } from '../../utils/i18n';
+import { useI18n } from '../../../utils/i18n';
 
 interface HelpSectionProps {
   // 可以添加其他需要的props

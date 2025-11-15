@@ -1,0 +1,97 @@
+// Content script styles for mark-translation extension
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mark-translation {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 2px solid #e9ecef;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.mark-translation-typing {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 2px solid #e9ecef;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.mark-translation-loading {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 8px;
+  border-left: 2px solid #e9ecef;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007acc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.mark-translation-error {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 12px 12px 12px 20px;
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 8px;
+  color: #721c24;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-left: 3px solid #dc3545;
+}
+
+.error-message {
+  flex: 1;
+}
+
+.retry-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.retry-button:hover {
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.retry-icon {
+  width: 16px;
+  height: 16px;
+  fill: #721c24;
+  transition: transform 0.3s;
+}
+
+.retry-button:hover .retry-icon {
+  transform: rotate(180deg);
+}
+
+.retry-button.retrying .retry-icon {
+  animation: rotate 1s linear infinite;
+}

@@ -17,7 +17,7 @@
     "no": "No"
   },
   "app": {
-    "title": "Mark Translation",
+    "title": "Flash Translation",
     "description": "A browser extension for Chinese-English translation using AI models"
   },
   "settings": {

@@ -84,7 +84,10 @@
     "translationStyleUpdated": "Translation style updated",
     "translationStyleDeleted": "Translation style deleted",
     "activeTranslationStyleUpdated": "Active translation style updated",
-    "activeConfigurationUpdated": "Active configuration updated"
+    "activeConfigurationUpdated": "Active configuration updated",
+    "selectModel": "Select a model",
+    "enterApiKey": "Enter your API key",
+    "configNamePlaceholder": "My DeepSeek Config"
   },
   "popup": {
     "title": "Mark Translation",

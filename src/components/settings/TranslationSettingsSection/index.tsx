@@ -17,6 +17,34 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
     updateTranslationConfig({ [field]: value });
   };
 
+  const handleSourceLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSourceLang = e.target.value as 'zh' | 'en';
+
+    // 如果源语言和目标语言相同，自动切换目标语言
+    const newTargetLang = newSourceLang === translationConfig.targetLang
+      ? (newSourceLang === 'zh' ? 'en' : 'zh')
+      : translationConfig.targetLang;
+
+    updateTranslationConfig({
+      sourceLang: newSourceLang,
+      targetLang: newTargetLang
+    });
+  };
+
+  const handleTargetLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTargetLang = e.target.value as 'zh' | 'en';
+
+    // 如果目标语言和源语言相同，自动切换源语言
+    const newSourceLang = newTargetLang === translationConfig.sourceLang
+      ? (newTargetLang === 'zh' ? 'en' : 'zh')
+      : translationConfig.sourceLang;
+
+    updateTranslationConfig({
+      sourceLang: newSourceLang,
+      targetLang: newTargetLang
+    });
+  };
+
   return (
     <div className="translation-settings-section">
       <h2 className="section-header">
@@ -62,7 +90,7 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
           <div className="language-direction">
             <select
               value={translationConfig.sourceLang}
-              onChange={(e) => handleTranslationConfigChange('sourceLang', e.target.value as 'zh' | 'en')}
+              onChange={handleSourceLangChange}
               className="form-select"
             >
               <option value="en">{t('settings.english')}</option>
@@ -71,7 +99,7 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
             <span className="direction-arrow">→</span>
             <select
               value={translationConfig.targetLang}
-              onChange={(e) => handleTranslationConfigChange('targetLang', e.target.value as 'zh' | 'en')}
+              onChange={handleTargetLangChange}
               className="form-select"
             >
               <option value="zh">{t('settings.chinese')}</option>

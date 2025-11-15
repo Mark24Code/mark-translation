@@ -84,7 +84,10 @@
     "translationStyleUpdated": "翻译风格已更新",
     "translationStyleDeleted": "翻译风格已删除",
     "activeTranslationStyleUpdated": "激活的翻译风格已更新",
-    "activeConfigurationUpdated": "激活的配置已更新"
+    "activeConfigurationUpdated": "激活的配置已更新",
+    "selectModel": "选择模型",
+    "enterApiKey": "输入您的 API 密钥",
+    "configNamePlaceholder": "我的 DeepSeek 配置"
   },
   "popup": {
     "title": "闪译",

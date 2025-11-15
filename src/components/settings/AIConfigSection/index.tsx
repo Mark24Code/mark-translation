@@ -240,7 +240,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 ? handleEditingConfigChange('name', e.target.value)
                 : handleNewConfigChange('name', e.target.value)
               }
-              placeholder="My DeepSeek Config"
+              placeholder={t('settings.configNamePlaceholder')}
               className="form-input"
               required
             />
@@ -292,7 +292,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
               className="form-select"
               required
             >
-              <option value="">Select a model</option>
+              <option value="">{t('settings.selectModel')}</option>
               {(providerConfigs[editingConfig ? editingConfig.provider : newConfig.provider]?.models || []).map(model => (
                 <option key={model.value} value={model.value}>
                   {model.label}
@@ -312,7 +312,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
                 ? handleEditingConfigChange('apiKey', e.target.value)
                 : handleNewConfigChange('apiKey', e.target.value)
               }
-              placeholder="Enter your API key"
+              placeholder={t('settings.enterApiKey')}
               className="form-input"
               required
             />

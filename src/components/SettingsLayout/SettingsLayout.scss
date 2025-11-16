@@ -1,6 +1,10 @@
 // 莫兰迪紫色配色方案
 @import '../../styles/variables';
 
+.settings-section {
+  width: 500px;
+}
+
 .settings-layout {
   display: flex;
   min-height: 100vh;

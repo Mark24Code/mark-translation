@@ -14,7 +14,7 @@ const LanguageSettingsSection: React.FC<LanguageSettingsSectionProps> = () => {
   const { t } = useI18n();
 
   return (
-    <div className="language-settings-section">
+    <div className="settings-section language-settings-section">
       <h2 className="section-header">
         {t('settings.languageSettings')}
       </h2>

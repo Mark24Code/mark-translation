@@ -80,7 +80,7 @@ const BackupSection: React.FC<BackupSectionProps> = ({
   };
 
   return (
-    <div className="backup-section">
+    <div className="settings-section backup-section">
       <h2 className="section-header">
         {t('settings.backupRestore')}
       </h2>

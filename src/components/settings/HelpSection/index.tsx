@@ -10,7 +10,7 @@ const HelpSection: React.FC<HelpSectionProps> = () => {
   const { t } = useI18n();
 
   return (
-    <div className="help-section">
+    <div className="settings-section help-section">
       <h2 className="section-header">
         {t('settings.gettingStarted')}
       </h2>

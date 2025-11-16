@@ -144,7 +144,7 @@ const TranslationStylesSection: React.FC<TranslationStylesSectionProps> = ({
   };
 
   return (
-    <div className="translation-styles-section">
+    <div className="settings-section translation-styles-section">
       <h2 className="section-header">
         {t('settings.translationStyles')}
       </h2>

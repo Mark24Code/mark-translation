@@ -157,7 +157,7 @@ const AIConfigSection: React.FC<AIConfigSectionProps> = ({
   };
 
   return (
-    <div className="ai-config-section">
+    <div className=" settings-section ai-config-section">
       <h2 className="section-header">
         {t('settings.aiConfigurations')}
       </h2>

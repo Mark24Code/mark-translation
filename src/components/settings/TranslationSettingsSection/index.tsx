@@ -46,7 +46,7 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
   };
 
   return (
-    <div className="translation-settings-section">
+    <div className="settings-section translation-settings-section">
       <h2 className="section-header">
         {t('settings.translationSettings')}
       </h2>

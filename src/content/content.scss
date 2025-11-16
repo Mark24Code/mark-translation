@@ -1,5 +1,5 @@
 // Content script styles for mark-translation extension
-@import '../styles/variables';
+@use '../styles/variables';
 
 @keyframes spin {
   0% { transform: rotate(0deg); }

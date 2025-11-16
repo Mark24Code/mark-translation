@@ -294,57 +294,6 @@ const Options: React.FC = () => {
     }
   };
 
-  const handleExportConfig = async () => {
-    try {
-      const configJson = await exportConfigs();
-      const blob = new Blob([configJson], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'mark-translation-config.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setStatus('✅ Configuration exported successfully!');
-      setStatusType('success');
-    } catch (error) {
-      console.error('Failed to export config:', error);
-      setStatus(`❌ Failed to export configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setStatusType('error');
-    }
-  };
-
-  const handleImportConfig = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const configJson = e.target?.result as string;
-        await importConfigs(configJson);
-        setStatus('✅ Configuration imported successfully!');
-        setStatusType('success');
-      };
-      reader.readAsText(file);
-    } catch (error) {
-      console.error('Failed to import config:', error);
-      setStatus(`❌ Failed to import configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setStatusType('error');
-    }
-
-    // 重置文件输入
-    event.target.value = '';
-  };
-
-  const handleResetConfig = async () => {
-    if (confirm('Are you sure you want to reset all settings? This will clear all configurations.')) {
-      await resetConfigs();
-      setStatus('Settings reset to defaults');
-      setStatusType('info');
-    }
-  };
 
   const handleTranslationConfigChange = (field: keyof TranslationConfig, value: any) => {
     updateTranslationConfig({ [field]: value });

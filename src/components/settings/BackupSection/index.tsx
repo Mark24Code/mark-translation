@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSetAtom } from 'jotai';
 import { useI18n } from '../../../utils/i18n';
+import { useToast } from '../../../contexts/ToastContext';
 import {
   exportConfigsAtom,
   importConfigsAtom,
@@ -24,6 +25,7 @@ const BackupSection: React.FC<BackupSectionProps> = ({
   const exportConfigs = useSetAtom(exportConfigsAtom);
   const importConfigs = useSetAtom(importConfigsAtom);
   const resetConfigs = useSetAtom(resetConfigsAtom);
+  const { showToast } = useToast();
 
   const { t } = useI18n();
 
@@ -34,17 +36,17 @@ const BackupSection: React.FC<BackupSectionProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'mark-translation-config.json';
+      // 生成带时间戳的文件名
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      a.download = `flash-translation-config-${timestamp}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setStatus('✅ Configuration exported successfully!');
-      setStatusType('success');
+      showToast(t('settings.configurationExported'), 'success');
     } catch (error) {
       console.error('Failed to export config:', error);
-      setStatus(`❌ Failed to export configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setStatusType('error');
+      showToast(t('errors.failedToExportConfiguration'), 'error');
     }
   };
 
@@ -57,14 +59,12 @@ const BackupSection: React.FC<BackupSectionProps> = ({
       reader.onload = async (e) => {
         const configJson = e.target?.result as string;
         await importConfigs(configJson);
-        setStatus('✅ Configuration imported successfully!');
-        setStatusType('success');
+        showToast(t('settings.configurationImported'), 'success');
       };
       reader.readAsText(file);
     } catch (error) {
       console.error('Failed to import config:', error);
-      setStatus(`❌ Failed to import configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setStatusType('error');
+      showToast(t('errors.failedToImportConfiguration'), 'error');
     }
 
     // 重置文件输入
@@ -72,10 +72,9 @@ const BackupSection: React.FC<BackupSectionProps> = ({
   };
 
   const handleResetConfig = async () => {
-    if (confirm('Are you sure you want to reset all settings? This will clear all configurations.')) {
+    if (confirm(t('common.confirmReset'))) {
       await resetConfigs();
-      setStatus('Settings reset to defaults');
-      setStatusType('info');
+      showToast(t('settings.settingsReset'), 'info');
     }
   };
 

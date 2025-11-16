@@ -1,6 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 
+// 抑制 Sass 的弃用警告
+process.env.SASS_DEPRECATION_WARNINGS = 'none'
+
 const browser = process.argv[2]
 const isFirefox = browser === 'firefox'
 const distDir = path.join(process.cwd(), 'dist', browser)

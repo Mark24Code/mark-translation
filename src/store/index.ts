@@ -2,6 +2,7 @@ import { atom } from 'jotai';
 import { AIConfig, TranslationConfig, TranslationStyle } from '../shared/types';
 import { StorageManager } from '../utils/storage';
 import { PARALLEL_TASKS_DEFAULT } from '../constants';
+import { I18nManager } from '../utils/i18n';
 
 // AI 配置列表
 export const aiConfigsAtom = atom<AIConfig[]>([]);
@@ -73,7 +74,6 @@ export const loadConfigsAtom = atom(
       set(activeTranslationStyleAtom, activeTranslationStyle);
 
       // 初始化 i18n 管理器
-      const { I18nManager } = await import('../utils/i18n');
       I18nManager.setLanguage(appConfig.language || 'zh');
     } catch (error) {
       console.error('Failed to load configs:', error);
@@ -309,7 +309,6 @@ export const updateLanguageAtom = atom(
       set(languageAtom, language);
 
       // 更新 i18n 管理器
-      const { I18nManager } = await import('../utils/i18n');
       I18nManager.setLanguage(language);
     } catch (error) {
       console.error('Failed to update language:', error);
@@ -343,7 +342,6 @@ export const resetConfigsAtom = atom(
       set(errorMessageAtom, null);
 
       // 重置 i18n 管理器
-      const { I18nManager } = await import('../utils/i18n');
       I18nManager.setLanguage('zh');
     } catch (error) {
       console.error('Failed to reset configs:', error);

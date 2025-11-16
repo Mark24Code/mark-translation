@@ -146,13 +146,43 @@ export class StorageManager {
 
   static async exportConfig(): Promise<string> {
     const appConfig = await this.getAppConfig();
-    return JSON.stringify(appConfig, null, 2);
+
+    // 创建导出配置，排除 translationStyles 中的 prompt 字段和 isBuiltIn: true 的数据
+    const exportConfig = {
+      ...appConfig,
+      translationStyles: appConfig.translationStyles
+        .filter(style => !style.isBuiltIn) // 排除内置风格
+        .map(style => ({
+          ...style,
+          prompt: undefined // 排除 prompt 字段
+        }))
+    };
+
+    return JSON.stringify(exportConfig, null, 2);
   }
 
   static async importConfig(configJson: string): Promise<void> {
     try {
-      const appConfig = JSON.parse(configJson) as AppConfig;
-      await this.setAppConfig(appConfig);
+      const importedConfig = JSON.parse(configJson) as AppConfig;
+      const currentConfig = await this.getAppConfig();
+
+      // 合并配置：保留内置翻译风格，合并导入的自定义风格
+      const mergedConfig: AppConfig = {
+        ...currentConfig,
+        ...importedConfig,
+        translationStyles: [
+          // 保留所有内置风格
+          ...currentConfig.translationStyles.filter(style => style.isBuiltIn),
+          // 添加导入的自定义风格（去重）
+          ...importedConfig.translationStyles.filter(importedStyle =>
+            !currentConfig.translationStyles.some(currentStyle =>
+              currentStyle.id === importedStyle.id
+            )
+          )
+        ]
+      };
+
+      await this.setAppConfig(mergedConfig);
     } catch (error) {
       throw new Error('Invalid configuration file');
     }

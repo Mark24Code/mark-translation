@@ -86,17 +86,24 @@ For now, using SVG version: icon-${type}-${size}.svg`
   console.log(`✅ Icons created in: ${iconsDir}`)
 }
 
+// 为指定浏览器创建图标
+export async function createIconsForBrowser(browser) {
+  const distDir = path.join(process.cwd(), 'dist', browser)
+  if (fs.existsSync(distDir)) {
+    await createIcons(distDir)
+  }
+}
+
 // 为 Chrome 和 Firefox 都创建图标
 async function main() {
   const browsers = ['chrome', 'firefox']
 
   for (const browser of browsers) {
-    const distDir = path.join(process.cwd(), 'dist', browser)
-    if (fs.existsSync(distDir)) {
-      await createIcons(distDir)
-    }
+    await createIconsForBrowser(browser)
   }
 }
 
-// 执行主函数
-main().catch(console.error)
+// 如果直接运行此文件，执行主函数
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(console.error)
+}

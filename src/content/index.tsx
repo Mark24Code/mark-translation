@@ -361,13 +361,22 @@ async function initialize() {
 
   // 监听来自弹出窗口的消息
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message.type === 'translatePage' || message.type === 'translatePageScroll') {
-      // 使用滚动翻译模式（默认模式）
+    if (message.type === 'translatePageScroll') {
+      // 使用滚动翻译模式
       if (scrollTranslationManager) {
         scrollTranslationManager.stopScrollTranslation();
       }
       scrollTranslationManager = new ScrollTranslationManager(message.config);
       scrollTranslationManager.startScrollTranslation();
+      sendResponse({ success: true });
+    } else if (message.type === 'translatePage') {
+      // 使用传统翻译模式（立即翻译整个页面）
+      if (scrollTranslationManager) {
+        scrollTranslationManager.stopScrollTranslation();
+        scrollTranslationManager = null;
+      }
+      const translationManager = new TranslationManager(message.config);
+      translationManager.translatePage();
       sendResponse({ success: true });
     } else if (message.type === 'clearTranslations') {
       const translationManager = new TranslationManager(message.config);

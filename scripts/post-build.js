@@ -64,21 +64,10 @@ function createManifest() {
 
 // 生成图标
 console.log(`🔄 Generating icons for ${browser}...`)
-const { spawn } = await import('child_process')
 
-const generateIcons = spawn('node', ['scripts/create-icons.js'], {
-  stdio: 'inherit'
-})
-
-await new Promise((resolve, reject) => {
-  generateIcons.on('close', (code) => {
-    if (code === 0) {
-      resolve()
-    } else {
-      reject(new Error(`Icon generation failed with code ${code}`))
-    }
-  })
-})
+// 直接导入并调用图标生成函数
+const { createIconsForBrowser } = await import('./create-icons.js')
+await createIconsForBrowser(browser)
 
 // 生成 manifest
 const manifest = createManifest()

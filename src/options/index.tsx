@@ -36,6 +36,7 @@ import LanguageSettingsSection from '../components/settings/LanguageSettingsSect
 import TranslationStylesSection from '../components/settings/TranslationStylesSection';
 import BackupSection from '../components/settings/BackupSection/index';
 import HelpSection from '../components/settings/HelpSection';
+import { useToast, ToastPortal } from '../contexts/ToastContext';
 import './base.scss';
 import './options.scss';
 
@@ -63,6 +64,7 @@ const Options: React.FC = () => {
   const setActiveTranslationStyle = useSetAtom(setActiveTranslationStyleAtom);
 
   const { t, getSupportedLanguages } = useI18n();
+  const { showToast } = useToast();
 
   // 状态管理
   const [activeSection, setActiveSection] = useState<string>('ai-config');
@@ -258,30 +260,35 @@ const Options: React.FC = () => {
       setIsTesting(true);
       setStatus(`Testing connection for ${config.name}...`);
       setStatusType('info');
+      showToast(`Testing connection for ${config.name}...`, 'info', 2000);
 
       const translationAPI = new TranslationAPI(config);
       const result = await translationAPI.translate('Hello, how are you today?', 'en', 'zh');
 
       if (result.success) {
-        setStatus(`✅ Connection successful for ${config.name}! Test translation: "${result.translated}"`);
+        const successMessage = `Connection successful for ${config.name}! Test translation: "${result.translated}"`;
+        setStatus(`✅ ${successMessage}`);
         setStatusType('success');
+        showToast(successMessage, 'success');
       } else {
         throw new Error(result.error || 'Connection test failed');
       }
     } catch (error) {
       console.error('Connection test failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      let userMessage = `Connection failed for ${config.name}: ${errorMessage}`;
 
       if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
-        setStatus(`❌ Connection failed for ${config.name}: Invalid API Key`);
+        userMessage = `Connection failed for ${config.name}: Invalid API Key`;
       } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-        setStatus(`❌ Connection failed for ${config.name}: Invalid API URL or model`);
+        userMessage = `Connection failed for ${config.name}: Invalid API URL or model`;
       } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-        setStatus(`❌ Connection failed for ${config.name}: Network error - check your internet connection`);
-      } else {
-        setStatus(`❌ Connection failed for ${config.name}: ${errorMessage}`);
+        userMessage = `Connection failed for ${config.name}: Network error - check your internet connection`;
       }
+
+      setStatus(`❌ ${userMessage}`);
       setStatusType('error');
+      showToast(userMessage, 'error');
     } finally {
       setIsTesting(false);
     }
@@ -518,12 +525,15 @@ const Options: React.FC = () => {
   };
 
   return (
-    <SettingsLayout
-      activeSection={activeSection}
-      onSectionChange={setActiveSection}
-    >
-      {renderActiveSection()}
-    </SettingsLayout>
+    <>
+      <SettingsLayout
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      >
+        {renderActiveSection()}
+      </SettingsLayout>
+      <ToastPortal />
+    </>
   );
 };
 

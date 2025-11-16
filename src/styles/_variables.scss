@@ -2,24 +2,24 @@
 // Centralized color management for the entire project
 
 // Primary Color Palette
-$primary-color: #A79277;
-$secondary-color: #D1BB9E;
-$tertiary-color: #EAD8C0;
-$background-light: #FFF2E1;
+$primary-color: #cc0000;
+$secondary-color: #0055bb;
+$tertiary-color: #233;
+$background-light: #eee;
 
 // Text Colors
-$text-primary: rgb(65, 84, 98);
-$text-secondary: rgb(148, 163, 184);
-$text-tertiary: rgba(51, 51, 51, 0.5);
+$text-primary: #222;
+$text-secondary: #233;
+$text-tertiary: rgba(34, 34, 34, 0.5);
 
 // Background Colors
 $background-primary: #ffffff;
-$background-secondary: #fafafa;
-$background-tertiary: #f8f9fa;
+$background-secondary: #f3f6f8;
+$background-tertiary: #f5f5f5;
 
 // Border Colors
-$border-primary: #dddddd;
-$border-secondary: #e9ecef;
+$border-primary: #cc0000;
+$border-secondary: #dddddd;
 $border-light: #f3f3f3;
 
 // Status Colors
@@ -40,12 +40,12 @@ $status-info-text: #0c5460;
 $status-info-border: #bee5eb;
 
 // Button Colors
-$button-primary-bg: #A79277;
-$button-primary-hover: darken(#A79277, 10%);
+$button-primary-bg: #cc0000;
+$button-primary-hover: #cc0000;
 $button-primary-text: #ffffff;
 
-$button-secondary-bg: #f5f5f5;
-$button-secondary-hover: #e0e0e0;
+$button-secondary-bg: #f3f5f6;
+$button-secondary-hover: #eaeced;
 $button-secondary-text: #333333;
 
 $button-danger-bg: #dc3545;
@@ -56,8 +56,8 @@ $button-disabled-bg: #6c757d;
 $button-disabled-text: #ffffff;
 
 // Accent Colors
-$accent-primary: #007acc;
-$accent-primary-hover: #005a9e;
+$accent-primary: #0055bb;
+$accent-primary-hover: #004499;
 $accent-success: #28a745;
 $accent-success-hover: #218838;
 

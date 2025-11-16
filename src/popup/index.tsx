@@ -217,14 +217,6 @@ const Popup: React.FC = () => {
             {translationStatus === 'translating' ? t('popup.translating') : getButtonText()}
           </button>
         </div>
-
-        <button
-          onClick={openSettings}
-          className="settings-button"
-        >
-          {t('popup.settings')}
-        </button>
-
         {/* AI Configuration Selection */}
         {(aiConfigs || []).length > 0 ? (
           <div className="ai-config-section">
@@ -251,6 +243,14 @@ const Popup: React.FC = () => {
           </div>
         )}
 
+      </div>
+      <div className='bottom-area'>
+        <button
+          onClick={openSettings}
+          className="settings-button"
+        >
+          ⚙️ {t('popup.settings')}
+        </button>
       </div>
 
       {/* <div className={`status-section ${statusInfo.type === 'success' ? 'status-success' :

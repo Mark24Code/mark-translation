@@ -1,6 +1,10 @@
 // Options page styles for mark-translation extension
 @import '../styles/variables';
 
+body {
+  background-color: var(--background-secondary);
+}
+
 .status-message {
   margin-bottom: 20px;
   padding: 12px;

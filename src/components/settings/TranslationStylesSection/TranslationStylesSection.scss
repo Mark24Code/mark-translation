@@ -6,14 +6,14 @@
 
   .section-header {
     margin: 0 0 20px 0;
-    color: var(--text-primary);
+    color: var(--tertiary-color);
     font-size: 24px;
     font-weight: 600;
   }
 
   .subsection-header {
     margin: 0 0 15px 0;
-    color: var(--text-primary);
+    color: var(--tertiary-color);
     font-size: 18px;
     font-weight: 500;
   }
@@ -33,7 +33,7 @@
 
   .style-item {
     padding: 15px;
-    border: 2px solid var(--secondary-color);
+    border: 1px solid var(--border-primary);
     border-radius: 8px;
     background: var(--background-primary);
 
@@ -52,6 +52,7 @@
     .style-name {
       color: var(--text-primary);
       font-weight: bold;
+      font-size: 16px;
     }
 
     .badge {
@@ -88,7 +89,6 @@
 
   .style-form {
     padding: 20px;
-    background: var(--background-light);
     border-radius: 8px;
     border: 1px solid var(--primary-color);
   }

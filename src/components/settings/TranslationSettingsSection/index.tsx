@@ -54,6 +54,31 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
       <div className="settings-grid">
         <div className="settings-group">
           <label className="form-label">
+            {t('settings.defaultLanguageDirection')}
+          </label>
+          <div className="language-direction">
+            <select
+              value={translationConfig.sourceLang}
+              onChange={handleSourceLangChange}
+              className="form-select"
+            >
+              <option value="en">{t('settings.english')}</option>
+              <option value="zh">{t('settings.chinese')}</option>
+            </select>
+            <span className="direction-arrow">→</span>
+            <select
+              value={translationConfig.targetLang}
+              onChange={handleTargetLangChange}
+              className="form-select"
+            >
+              <option value="zh">{t('settings.chinese')}</option>
+              <option value="en">{t('settings.english')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="settings-group">
+          <label className="form-label">
             {t('settings.parallelTasks')}
           </label>
           <input
@@ -81,31 +106,6 @@ const TranslationSettingsSection: React.FC<TranslationSettingsSectionProps> = ()
             />
             <span>{t('settings.autoTranslateDescription')}</span>
           </label>
-        </div>
-
-        <div className="settings-group">
-          <label className="form-label">
-            {t('settings.defaultLanguageDirection')}
-          </label>
-          <div className="language-direction">
-            <select
-              value={translationConfig.sourceLang}
-              onChange={handleSourceLangChange}
-              className="form-select"
-            >
-              <option value="en">{t('settings.english')}</option>
-              <option value="zh">{t('settings.chinese')}</option>
-            </select>
-            <span className="direction-arrow">→</span>
-            <select
-              value={translationConfig.targetLang}
-              onChange={handleTargetLangChange}
-              className="form-select"
-            >
-              <option value="zh">{t('settings.chinese')}</option>
-              <option value="en">{t('settings.english')}</option>
-            </select>
-          </div>
         </div>
       </div>
     </div>

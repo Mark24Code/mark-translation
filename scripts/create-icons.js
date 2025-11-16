@@ -4,8 +4,8 @@ import sharp from 'sharp'
 
 // 创建简单的 SVG 图标内容
 function createSVGIcon(size, type = 'idle') {
-  // 莫兰迪色风格的紫色背景
-  const backgroundColor = '#9E8FB2';
+  // 新主题色红色背景
+  const backgroundColor = '#cc0000';
 
   // 状态指示器的颜色和位置
   const statusConfig = {
